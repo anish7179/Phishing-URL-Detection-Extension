@@ -492,6 +492,9 @@ function analyzeUrlFeatures(urlInfo) {
 
   const spoofedBrand = checkTyposquatting(urlInfo.domain);
   if (spoofedBrand) {
+    if (urlInfo.category === 'unknown') {
+      urlInfo.category = determineDomainCategory('http://' + spoofedBrand + '.com');
+    }
     urlInfo.spoofedBrand = spoofedBrand; // Save for explanation
     score += 0.6 * sensMultiplier;
   }
