@@ -422,7 +422,7 @@ async function checkDomainAgeReal(domain) {
 // ── URL Analysis Pipeline ──
 function preprocessUrl(url) {
   try {
-    if (!window.URL) return fallbackPreprocess(url);
+    if (typeof URL === "undefined") return fallbackPreprocess(url);
     if (!url.startsWith("http://") && !url.startsWith("https://"))
       url = "http://" + url;
 
