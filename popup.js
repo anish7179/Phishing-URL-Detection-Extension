@@ -108,26 +108,110 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function analyze(url) {
     if (!/^https?:\/\//i.test(url)) url = "http://" + url;
-    chrome.runtime.sendMessage({ action: "analyzeUrl", url, checkDomainAge: true }, (r) => {
-      loading(false);
-      if (chrome.runtime.lastError) {
-        showError(chrome.runtime.lastError.message || "Failed to communicate with background script.");
-        return;
-      }
-      if (r && r.error) {
-        showError(r.error);
-        return;
-      }
-      if (r) showResult(r);
-      else showError("Unknown error. Background script returned no data.");
-    });
+    chrome.runtime.sendMessage(
+      { action: "analyzeUrl", url, checkDomainAge: true },
+      (r) => {
+        loading(false);
+        if (chrome.runtime.lastError) {
+          const el = document.getElementById("result");
+          el.innerHTML =
+            '<div class="card"><div style="color:var(--danger)"><b>IPC Error:</b> ' +
+            (chrome.runtime.lastError.message || "Connection lost.") +
+            "</div></div>";
+          el.classList.add("active");
+          return;
+        }
+        if (r && r.error) {
+          const el = document.getElementById("result");
+          el.innerHTML =
+            '<div class="card"><div style="color:var(--danger)">Error: ' +
+            r.error +
+            "</div></div>";
+          el.classList.add("active");
+        } else if (r) {
+          showResult(r);
+        }
+      },
+    );
   }
 
-  function showError(msg) {
+  const ico = {
+    financial: "🏦",
+    ecommerce: "🛒",
+    social: "👥",
+    gaming: "🎮",
+    education: "🎓",
+    streaming: "🎬",
+    technology: "💻",
+    government: "🏛️",
+    healthcare: "🏥",
+    news: "📰",
+    unknown: "🌐",
+  };
+
+  function showResult(r) {
     const el = document.getElementById("result");
-    el.innerHTML = '<div class="card"><div style="color:var(--danger)"><b>Runtime Error:</b> ' + msg + '</div></div>';
+    const bad = r.classification === "Phishing";
+    const pct = (r.confidence * 100).toFixed(1);
+    const cat = r.category || r.urlInfo?.category || "unknown";
+    const dom = r.urlInfo?.domain || r.url;
+
+    const risks = [];
+    if (r.urlInfo) {
+      if (r.urlInfo.hasSuspiciousWords)
+        risks.push("Suspicious keywords detected");
+      if (r.urlInfo.hasIpAddress)
+        risks.push("IP address used instead of domain");
+      if (r.urlInfo.domainLength > 30) risks.push("Unusually long domain");
+      if (r.urlInfo.numDots > 3) risks.push("Excessive dots in URL");
+      if (r.urlInfo.numHyphens > 2) risks.push("Multiple hyphens in domain");
+      if (r.urlInfo.numAtSymbols > 0) risks.push("Contains @ symbol");
+      if (r.urlInfo.subdomainLevels > 2) risks.push("Deep subdomain nesting");
+    }
+    if (r.domainAge?.isSuspicious)
+      risks.push("New domain (" + r.domainAge.ageInDays + " days)");
+    if (r.phishingCount > 1) risks.push(r.phishingCount + " prior attempts");
+
+    let h = `<div class="card">
+      <div class="res-top">
+        <div class="res-icon ${bad ? "bad" : "ok"}">${bad ? "⚠️" : "✓"}</div>
+        <div><div class="res-title">${bad ? "Threat Detected" : "URL is Safe"}</div><div class="res-domain">${dom}</div></div>
+      </div>
+      <div class="prog-header">
+        <span class="prog-label">Confidence</span>
+        <span class="prog-val" style="color:${bad ? "var(--danger)" : "var(--success)"}">${pct}%</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill ${bad ? "fill-bad" : "fill-ok"}" id="conf-bar"></div></div>
+      <div class="tags-row">
+        <span class="tag ${bad ? "tag-red" : "tag-green"}">${bad ? "Phishing" : "Legitimate"}</span>
+        <span class="tag tag-blue">${ico[cat] || "🌐"} ${cat}</span>
+      </div>`;
+
+    if (r.domainAge) {
+      h += `<div class="age-bar"><span>Age: <strong>${r.domainAge.ageInDays} days</strong></span><span>Reg: <strong>${r.domainAge.registrationDate}</strong></span></div>`;
+    }
+
+    if (risks.length) {
+      h +=
+        '<div class="info-section"><div class="info-label">Risk Factors</div>';
+      risks.forEach(
+        (f) =>
+          (h += `<div class="info-row"><span class="i-dot red"></span>${f}</div>`),
+      );
+      h += "</div>";
+    } else if (!bad) {
+      h += `<div class="info-section"><div class="info-label">Analysis</div>
+        <div class="info-row"><span class="i-dot green"></span>No suspicious patterns</div>
+        <div class="info-row"><span class="i-dot green"></span>Normal domain structure</div></div>`;
+    }
+
+    h += "</div>";
+    el.innerHTML = h;
     el.classList.add("active");
-  }
+    requestAnimationFrame(() => {
+      const bar = document.getElementById("conf-bar");
+      if (bar) bar.style.width = pct + "%";
+    });
   }
 
   // ──────────────────
@@ -173,7 +257,7 @@ document.addEventListener("DOMContentLoaded", function () {
         s.checkDomainAge !== false;
       document.getElementById("advanced-analysis").checked =
         s.advancedAnalysis !== false;
-            document.getElementById("custom-whitelist").value =
+      document.getElementById("custom-whitelist").value =
         s.customWhitelist || "";
       if (s.sensitivityLevel) {
         slider.value = s.sensitivityLevel;
