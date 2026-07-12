@@ -1,0 +1,23 @@
+Title:
+Phishing URL Detector - Privacy First AI Scanner
+
+Short Summary (132 chars limit):
+Protect yourself from phishing links with mathematical ML heuristics, WHOIS checks, and Safe Browsing lookups—all locally computed.
+
+Detailed Description (Max 16,000 chars):
+Phishing URL Detector is an ultra-fast, privacy-first Chrome Extension that analyzes URLs in real-time to protect you from spoofing, typosquatting, and malicious websites.
+
+Instead of just checking against static blacklists, this extension uses intelligent, dynamic heuristic analysis running natively inside your browser. Your browsing data never leaves your device unless you opt strictly into APIs.
+
+Key Features:
+- 🛡️ Advanced ML-Like Heuristics: Uses Shannon entropy to detect randomized spam domains and Levenshtein distance matching to mathematically spot typosquatting (e.g. g00gle.com).
+- 📅 Live WHOIS Domain Age: Detects incredibly recent domain registrations using RDAP to warn you against fly-by-night fraudulent sites instantly.
+- 🔗 Google Safe Browsing Integration: Drop in your free API key to check sites against Google's live server indexing for zero-day malware. 
+- 🔠 Homoglyph Detection: Will immediately warn if a URL has deceptive Unicode/Cyrillic characters meant to trick your eye.
+- 🔐 Absolute Privacy: Analysis happens locally. Your browsing history is not stored remotely.
+- ⚡ Fluid UI: Premium dark-mode ready glassmorphism interface that gives you beautiful statistical breakdowns of threats you've faced.
+
+Stop phishing attacks before they happen. Add Phishing URL Detector to Chrome today.
+
+---
+SEO Keywords: Phishing, cybersecurity, malware scanner, safe browsing, url scanner, network security.
