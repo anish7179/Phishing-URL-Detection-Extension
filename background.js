@@ -508,7 +508,7 @@ function fallbackPreprocess(url) {
   };
 }
 
-function analyzeUrlFeatures(urlInfo, domainAge, url, domSignals) {\n  urlInfo.domSignals = domSignals || { passwordField: false, externalForm: false, hiddenIframe: false };
+function analyzeUrlFeatures(urlInfo, domainAge, url, domSignals) { urlInfo.domSignals = domSignals || { passwordField: false, externalForm: false, hiddenIframe: false };
   // ──────────────────────────────────────────────
   // ML: Logistic Regression Subsystem
   // ──────────────────────────────────────────────
