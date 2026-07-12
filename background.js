@@ -551,26 +551,26 @@ function analyzeUrlFeatures(urlInfo, domainAge, url, domSignals) { urlInfo.domSi
   const f_pathLogin = (urlInfo.path.toLowerCase().includes('login') || urlInfo.path.toLowerCase().includes('chase')) ? 1.0 : 0.0;
 
   // 2. Machine Learning Weights Matrix (Pre-calculated Expert Model)
-  const W_bias = -4.0;
+  const W_bias = -3.8918;
   const W = [
-    f_suspiciousWords * 2.8,   // keywords are dangerous
-    f_domainLen       * 1.0,   // excessively long domains
-    f_hyphens         * 1.2,   // multiple hyphens
-    f_ipAddress       * 4.5,   // bare IP address
-    f_atSymbols       * 3.5,   // credential stuffing @
-    f_encoding        * 1.8,   // extreme % formatting
-    f_entropy         * 3.0,   // DGA / RNG detection
-    f_spoofedBrand    * 5.5,   // Typosquatting
-    f_homoglyphs      * 5.5,   // Punycode/Cyrillic spoofing
-    f_suspiciousTLD   * 1.6,   // low-quality TLDs
-    f_suspiciousAge   * 2.2,   // extremely young domain
-    f_pathPlugin      * 3.5,   // Compromised wordpress sites
-    f_pathLogin       * 2.0,   // Generic path disguises
-    f_deepPath        * 1.5,   // Obfuscation via depth
-    f_domPassword     * 3.5,   // Unexpected password forms
-    f_domExternal     * 3.0,   // Data exfiltration to unknown domains
-    f_domHidden       * 2.5,   // Obfuscated iframes
-    f_domRisk         * 5.5    // Critical threat: Unknown/Spoofed domain asking for passwords!
+    f_suspiciousWords * 2.3018,
+    f_domainLen       * 2.6284,
+    f_hyphens         * 4.9940,
+    f_ipAddress       * 3.4272,
+    f_atSymbols       * 4.2642,
+    f_encoding        * 3.0961,
+    f_entropy         * 3.6075,
+    f_spoofedBrand    * 0.4983,
+    f_homoglyphs      * 0.0000,
+    f_suspiciousTLD   * 5.0798,
+    f_suspiciousAge   * 0.0000,
+    f_pathPlugin      * 2.1491,
+    f_pathLogin       * 2.3860,
+    f_deepPath        * 6.3304,
+    f_domPassword     * 3.5,   // Unexpected password forms (Manual Structural Value)
+    f_domExternal     * 3.0,   // Data exfiltration to unknown domains (Manual Structural Value)
+    f_domHidden       * 2.5,   // Obfuscated iframes (Manual Structural Value)
+    f_domRisk         * 5.5    // Critical threat: Unknown/Spoofed domain asking for passwords! (Manual Structural Value)
   ];
 
   // 3. Dot Product

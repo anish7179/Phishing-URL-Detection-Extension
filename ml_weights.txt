@@ -1,0 +1,17 @@
+const W_bias = 3.8918;
+const W = [
+  f_suspiciousWords * -2.3018,
+  f_domainLen * -2.6284,
+  f_hyphens * -4.9940,
+  f_ipAddress * -3.4272,
+  f_atSymbols * -4.2642,
+  f_encoding * -3.0961,
+  f_entropy * -3.6075,
+  f_spoofedBrand * -0.4983,
+  f_homoglyphs * 0.0000,
+  f_suspiciousTLD * -5.0798,
+  f_suspiciousAge * 0.0000,
+  f_pathPlugin * -2.1491,
+  f_pathLogin * -2.3860,
+  f_deepPath * -6.3304,
+];
