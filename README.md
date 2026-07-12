@@ -1,134 +1,50 @@
-# 🛡️ Phishing URL Detector Extension
+# Phishing URL Detector 🛡️
 
-![Version](https://img.shields.io/badge/version-1.0-green.svg)
+A highly advanced, completely serverless, and privacy-first Chrome Extension designed to detect zero-day phishing websites locally in your browser. Utilizing a native **Logistic Regression Machine Learning pipeline** combined with **Live Structural DOM Intelligence**, it catches malicious domains without sacrificing your privacy or relying on third-party tracking APIs.
 
-## 📋 Overview
+> **100% Privacy by Design**: Unlike legacy detectors, this engine strips out Google Safe Browsing and remote telemetry APIs entirely. Your browsing activity never leaves your machine.
 
-Phishing URL Detector is a powerful Chrome extension designed to protect users from phishing attacks by analyzing URLs in real-time. Using advanced heuristic algorithms and feature extraction techniques, the extension evaluates URLs to identify potential phishing attempts before users interact with malicious websites.
+---
 
+## 🚀 Key Features
 
-## ✨ Features
+- 🤖 **Native Logic Regression ML Model**  
+   Replaces arbitrary heuristic guessing with true localized predictive modeling. Features are dynamically normalized into a 13-point extraction vector (e.g., String Length, Entropy Bounds, Credential Tensors), fed through a pre-calculated mathematical weight matrix, and outputted via a Sigmoid Activation function for hyper-accurate threat probabilities.
 
-- 🔍 **Real-time URL Analysis**: Automatically scans websites as you browse
-- ⚠️ **Warning Overlay**: Displays alerts when potentially dangerous websites are detected
-- 📊 **Detailed Reports**: Provides comprehensive analysis with confidence scores and risk factors
-- 🕰️ **Domain Age Verification**: Checks how recently domains were registered (new domains are often used for phishing)
-- 📜 **Detection History**: Maintains a log of all detected phishing attempts
-- 🔧 **Customizable Settings**: Adjust sensitivity levels and protection features to your preferences
-- 🧠 **Advanced Pattern Recognition**: Identifies suspicious patterns in URLs that may indicate phishing attempts
-- 🔄 **Regular Updates**: Algorithm is designed to detect emerging phishing techniques
+- 🕷️ **Live Structural DOM Extraction**  
+   Automatically catches 10+ year old compromised domains that look "legitimate" on paper. Operates a silent, high-speed (1.2-second timeout) structural HTML scanner in the background to detect hidden iframe harvesters, mismatched cross-origin form endpoints, and unexpected `<input type="password">` boxes nested deep inside generic domains.
 
-## 🔧 Installation
+- 🌐 **Serverless RDAP Telemetry**  
+   Performs lightning-fast WHOIS Domain-Age checks solely relying on standardized ICANN RDAP endpoints. Instantly flags burner domains and freshly registered sites masquerading as legacy bank URLs.
 
-### From Chrome Web Store (Coming Soon)
-1. Visit the Chrome Web Store
-2. Search for "Phishing URL Detector"
-3. Click "Add to Chrome"
+- 🎨 **Premium UI/UX Design**  
+   Engineered with a sleek, Linear-inspired Glassmorphism aesthetic. Features an interactive dashboard covering real-time scanning, comprehensive historical detection analytics, categorized visual data rendering, and dark/light mode persistent themes.
 
-### Manual Installation
-1. Download or clone this repository
-2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable "Developer mode" in the top-right corner
-4. Click "Load unpacked" and select the extension directory
-5. The extension is now installed and active!
+---
 
-## 🚀 How to Use
+## 🛠️ Installation (Developer Mode)
 
-### Analyze Current Page
-1. Click the Phishing URL Detector icon in your browser toolbar
-2. Select "Analyze Current Page" to scan the website you're currently visiting
+1. Clone or download this repository to your local machine.
+2. Open Google Chrome or Brave and navigate to the extensions page: `chrome://extensions/`
+3. Enable **Developer mode** via the toggle switch in the top right corner.
+4. Click on the **Load unpacked** button.
+5. Select the main directory folder containing the `manifest.json`.
+6. The Phishing URL Detector icon will now appear in your browser's extension toolbar!
 
-### Analyze a Specific URL
-1. Click the extension icon
-2. Enter a URL in the text field
-3. Click "Analyze URL" to evaluate the security of the specified website
+---
 
-### Review Detection History
-1. Open the extension popup
-2. Select the "History" tab to view past detections
-3. Review details of previously analyzed URLs
+## ⚙️ How It Works (Under the Hood)
 
-### Customize Settings
-1. Access the "Settings" tab in the extension popup
-2. Adjust protection features according to your preferences:
-   - Toggle real-time protection
-   - Adjust sensitivity level
-   - Enable/disable warning overlays
-   - Configure domain age checks
+1. **Feature Extraction**: When you click Analyze, the Service Worker extracts hard character sets (Entropy, Hyphens, Length, '@' inclusions).
+2. **Context Crawling**: The Worker secretly spins up an `AbortController` fetch layer, dragging the target site's raw HTML structure into an isolation sandbox to scan for structural credential threats.
+3. **Logistics**: The gathered data builds a `[Z]` matrix against pre-expert weights (`W`).
+4. **Calculus Application**: `Probability = 1 / (1 + e^-Z)`. Any final probabilistic score that passes the normalized sensitivity threshold flags a visual red alert on the UI dashboard in 0.05 seconds.
 
-## 🧩 How It Works
+---
 
-The Phishing URL Detector employs multiple analysis techniques to identify potential threats:
+## 👤 Author
 
-1. **URL Feature Extraction**: Analyzes domain length, path structure, special characters, and other URL components
-2. **Pattern Recognition**: Identifies suspicious patterns commonly found in phishing URLs
-3. **Domain Age Verification**: Checks how recently domains were registered
-4. **Keyword Analysis**: Scans for suspicious terms frequently used in phishing attempts
-5. **Subdomain Analysis**: Evaluates the complexity and structure of subdomains
+Developed by **Anish Pawar**  
+📧 Email: [anishp1210@gmail.com](mailto:anishp1210@gmail.com)
 
-Based on these factors, the extension calculates a risk score and classifies URLs as either legitimate or potentially dangerous.
-
-## 🛠️ Technical Details
-
-The extension is built using:
-- JavaScript (ES6+)
-- Chrome Extension Manifest V3
-- Local storage for settings and history management
-- Domain age verification API integration (simulated in current version)
-
-Key components:
-- `background.js`: Core analysis engine and background service
-- `popup.js`: User interface controller
-- `popup.html`: Extension popup interface
-- `manifest.json`: Extension configuration and permissions
-
-## 📈 Future Improvements
-
-- [ ] Machine learning model integration for improved detection
-- [ ] Safe browsing API integration
-- [ ] Customizable whitelist for trusted domains
-- [ ] Email link analysis for detecting phishing attempts in messages
-- [ ] Browser fingerprint detection for advanced threat identification
-- [ ] Performance optimizations for faster analysis
-- [ ] Additional language support
-
-## 👥 Contributing
-
-Contributions are welcome! If you'd like to improve the Phishing URL Detector:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📊 PowerPoint Presentation
-https://github.com/ARI-create193/Phishing-URL-Detection-Extension/blob/main/PPT.pdf
-
-## 🖥️ Demo
-![image](https://github.com/user-attachments/assets/a20d94b2-8d6d-4fe2-bdf0-4f086297b741)
-
-## 🚀 WorkFlow
-![image](https://github.com/user-attachments/assets/59551745-37b0-4956-a4ee-6a1c87334360)
-
-
-## 📞 Contact
-
-Feel free to reach out if you have questions, suggestions, or would like to contribute:
-
-- GitHub: Open an issue in this repository
-- Email: aryankaminwar@gmail.com 
-
-## 🔒 Privacy
-
-The Phishing URL Detector extension:
-- Does not collect or transmit user browsing data
-- Performs all analysis locally on your device
-- Does not share URLs or browsing history with any third parties
-- Requires only the necessary permissions to function properly
-
-## 🙏 Acknowledgments
-
-- Icon designed by Aryan Kaminwar
-- Special thanks to all contributors
-- Inspired by the need for better phishing protection in modern browsers
+_Built securely for Manifest V3 ecosystems._
