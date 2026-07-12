@@ -1,3 +1,12 @@
+
+window.onerror = function(msg, url, line, col, err) {
+  document.body.innerHTML = '<div style="padding:20px; color:white; background:red; font-size:14px; word-break:break-all;"><b>FATAL UI CRASH:</b><br>' + msg + '<br>Line: ' + line + '<br>' + (err ? err.stack : '') + '</div>';
+  return false;
+};
+window.addEventListener('unhandledrejection', function(event) {
+  document.body.innerHTML = '<div style="padding:20px; color:white; background:red; font-size:14px; word-break:break-all;"><b>PROMISE CRASH:</b><br>' + (event.reason ? event.reason.stack : event.reason) + '</div>';
+});
+
 document.addEventListener("DOMContentLoaded", function () {
   // ── Theme ──
   const themeBtn = document.getElementById("theme-toggle");
