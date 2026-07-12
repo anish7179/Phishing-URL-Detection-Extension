@@ -1,23 +1,12 @@
 const suspiciousKeywords = [
-  "login",
-  "secure",
-  "account",
-  "verify",
-  "update",
-  "bank",
-  "paypal",
-  "amazon",
-  "apple",
-  "microsoft",
-  "netflix",
-  "password",
-  "urgent",
-  "suspended",
-  "limited",
-  "validation",
-  "recovery",
-  "security",
-  "confirm",
+  "login", "verify", "update", "account", "secure", "authenticate",
+  "banking", "password", "credential", "recover", "unlock", "wallet",
+  "confirm", "support", "service", "billing", "invoice", "payment",
+  "refund", "alert", "notice", "urgent", "required", "suspend",
+  "limit", "restrict", "validation", "auth", "signin",
+  "paypal", "apple", "microsoft", "google", "amazon", "facebook",
+  "chase", "wellsfargo", "bankofamerica",
+  "caixa", "acesso", "conta", "seguranca", "itau", "bradesco", "santander", "banco"
 ];
 
 const suspiciousPatterns = [
@@ -28,31 +17,8 @@ const suspiciousPatterns = [
 
 // Top brands for typosquatting checks
 const topBrands = [
-  "google",
-  "youtube",
-  "facebook",
-  "amazon",
-  "apple",
-  "microsoft",
-  "netflix",
-  "paypal",
-  "instagram",
-  "twitter",
-  "linkedin",
-  "github",
-  "yahoo",
-  "whatsapp",
-  "tiktok",
-  "reddit",
-  "twitch",
-  "ebay",
-  "walmart",
-  "chase",
-  "wellsfargo",
-  "bankofamerica",
-  "capitalone",
-  "citi",
-  "americanexpress",
+  "apple", "google", "microsoft", "amazon", "facebook", "paypal", "netflix", 
+  "bankofamerica", "chase", "wellsfargo", "twitter", "caixa", "itau", "bradesco"
 ];
 
 // Built-in whitelist (Top trusted domains)
@@ -320,7 +286,7 @@ function extractDomain(url) {
 async function fetchPageSignals(url) {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 1200); // Super fast timeout
+    const timeoutId = setTimeout(() => controller.abort(), 4500); // Super fast timeout
     const response = await fetch(url, { signal: controller.signal });
     clearTimeout(timeoutId);
     
@@ -541,7 +507,10 @@ function analyzeUrlFeatures(urlInfo, domainAge, url, domSignals) { urlInfo.domSi
   if (hasHomoglyphs) urlInfo.hasHomoglyphs = true;
   const f_homoglyphs = hasHomoglyphs ? 1.0 : 0.0;
 
-  const suspiciousTLDs = [".tk", ".ml", ".ga", ".cf", ".gq", ".xyz", ".top", ".zip", ".click", ".link"];
+  const suspiciousTLDs = [
+  ".tk", ".ml", ".ga", ".cf", ".gq", ".xyz", ".top", ".zip", ".click", ".link",
+  ".hol.es", ".pe.hu", ".000webhostapp.com", ".servehttp.com", ".rf.gd", ".epizy.com"
+];
   const f_suspiciousTLD = suspiciousTLDs.some((tld) => urlInfo.domain.endsWith(tld)) ? 1.0 : 0.0;
   
   const f_suspiciousAge = (urlInfo.domainAge && urlInfo.domainAge.isSuspicious) ? 1.0 : 0.0;
