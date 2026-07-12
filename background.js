@@ -474,69 +474,75 @@ function fallbackPreprocess(url) {
 }
 
 function analyzeUrlFeatures(urlInfo) {
-  let score = 0.0;
-  const sensMultiplier = settings.sensitivityLevel / 3;
-
-  if (urlInfo.hasSuspiciousWords) score += 0.4 * sensMultiplier;
-  if (urlInfo.domainLength > 35) score += 0.3 * sensMultiplier;
-  if (urlInfo.numHyphens > 2) score += 0.3 * sensMultiplier;
-  if (urlInfo.hasIpAddress) score += 0.6 * sensMultiplier;
-  if (urlInfo.numAtSymbols > 0) score += 0.5 * sensMultiplier;
-  if (urlInfo.hasExcessiveEncoding) score += 0.2 * sensMultiplier;
-
-  if (suspiciousPatterns.some((p) => p.test(urlInfo.url.toLowerCase()))) {
-    score += 0.3 * sensMultiplier;
-  }
-
-  const domainEntropy = shannonEntropy(urlInfo.domain);
-  if (domainEntropy > 4.0) {
-    // Highly randomized domains
-    score += 0.35 * sensMultiplier;
-  }
+  // ──────────────────────────────────────────────
+  // ML: Logistic Regression Subsystem
+  // ──────────────────────────────────────────────
+  // 1. Feature Extraction (Normalization)
+  const f_suspiciousWords = urlInfo.hasSuspiciousWords ? 1.0 : 0.0;
+  const f_domainLen = Math.min(urlInfo.domainLength / 100.0, 1.0);
+  const f_hyphens = Math.min(urlInfo.numHyphens / 5.0, 1.0);
+  const f_ipAddress = urlInfo.hasIpAddress ? 1.0 : 0.0;
+  const f_atSymbols = urlInfo.numAtSymbols > 0 ? 1.0 : 0.0;
+  const f_encoding = urlInfo.hasExcessiveEncoding ? 1.0 : 0.0;
+  
+  const rawEntropy = shannonEntropy(urlInfo.domain);
+  const f_entropy = Math.min(rawEntropy / 5.0, 1.0);
 
   const spoofedBrand = checkTyposquatting(urlInfo.domain);
   if (spoofedBrand) {
+    urlInfo.spoofedBrand = spoofedBrand;
     if (urlInfo.category === 'unknown') {
       urlInfo.category = determineDomainCategory('http://' + spoofedBrand + '.com');
     }
-    urlInfo.spoofedBrand = spoofedBrand; // Save for explanation
-    score += 0.6 * sensMultiplier;
   }
+  const f_spoofedBrand = spoofedBrand ? 1.0 : 0.0;
+  
+  const hasHomoglyphs = checkHomoglyphs(urlInfo.domain);
+  if (hasHomoglyphs) urlInfo.hasHomoglyphs = true;
+  const f_homoglyphs = hasHomoglyphs ? 1.0 : 0.0;
 
-  if (checkHomoglyphs(urlInfo.domain)) {
-    urlInfo.hasHomoglyphs = true;
-    score += 0.65 * Math.max(1, sensMultiplier);
-  }
+  const suspiciousTLDs = [".tk", ".ml", ".ga", ".cf", ".gq", ".xyz", ".top", ".zip", ".click", ".link"];
+  const f_suspiciousTLD = suspiciousTLDs.some((tld) => urlInfo.domain.endsWith(tld)) ? 1.0 : 0.0;
+  
+  const f_suspiciousAge = (urlInfo.domainAge && urlInfo.domainAge.isSuspicious) ? 1.0 : 0.0;
+  
+  const f_pathPlugin = (urlInfo.pathLength > 20 && urlInfo.path.includes('/plugins/')) ? 1.0 : 0.0;
+  const f_pathLogin = (urlInfo.path.toLowerCase().includes('login') || urlInfo.path.toLowerCase().includes('chase')) ? 1.0 : 0.0;
 
-  const suspiciousTLDs = [
-    ".tk",
-    ".ml",
-    ".ga",
-    ".cf",
-    ".gq",
-    ".xyz",
-    ".top",
-    ".zip",
-    ".click",
-    ".link",
+  // 2. Machine Learning Weights Matrix (Pre-calculated Expert Model)
+  const W_bias = -4.5;
+  const W = [
+    f_suspiciousWords * 2.8,   // keywords are dangerous
+    f_domainLen       * 1.0,   // excessively long domains
+    f_hyphens         * 1.2,   // multiple hyphens
+    f_ipAddress       * 4.5,   // bare IP address
+    f_atSymbols       * 3.5,   // credential stuffing @
+    f_encoding        * 1.8,   // extreme % formatting
+    f_entropy         * 3.0,   // DGA / RNG detection
+    f_spoofedBrand    * 5.5,   // Typosquatting
+    f_homoglyphs      * 5.5,   // Punycode/Cyrillic spoofing
+    f_suspiciousTLD   * 1.6,   // low-quality TLDs
+    f_suspiciousAge   * 2.2,   // extremely young domain
+    f_pathPlugin      * 3.5,   // Compromised wordpress sites
+    f_pathLogin       * 2.0    // Generic path disguises
   ];
-  if (suspiciousTLDs.some((tld) => urlInfo.domain.endsWith(tld))) {
-    score += 0.25 * sensMultiplier;
-  }
 
-  if (urlInfo.domainAge && urlInfo.domainAge.isSuspicious) {
-    score += 0.3 * sensMultiplier;
-  }
+  // 3. Dot Product
+  const z = W_bias + W.reduce((acc, val) => acc + val, 0);
 
-  score = Math.min(score, 0.99);
+  // 4. Sigmoid Activation (Output -> 0.0 to 1.0)
+  const probability = 1.0 / (1.0 + Math.exp(-z));
 
-  const threshold = 0.35 - (settings.sensitivityLevel - 3) * 0.05;
-  const isPhishing = score > threshold;
+  // 5. Sensitivity Shift
+  const sensMultiplier = settings.sensitivityLevel / 3.0; 
+  const threshold = 0.5 / sensMultiplier;
+  
+  const isPhishing = probability > threshold;
 
   return {
-    classification: isPhishing ? "Phishing" : "Legitimate",
-    confidence: isPhishing ? score : 1 - score / threshold,
-    score: score,
+    classification: isPhishing ? 'Phishing' : 'Legitimate',
+    confidence: Math.max(0.01, probability),
+    score: probability
   };
 }
 
