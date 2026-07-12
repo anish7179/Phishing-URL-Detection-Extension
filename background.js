@@ -566,10 +566,12 @@ function analyzeUrlFeatures(urlInfo) {
   if (spoofedBrand) {
     urlInfo.spoofedBrand = spoofedBrand;
     if (urlInfo.category === "unknown") {
-      urlInfo.category = determineDomainCategory("http://" + spoofedBrand + ".com");
+      urlInfo.category = determineDomainCategory(
+        "http://" + spoofedBrand + ".com",
+      );
     }
   }
-  
+
   const f_domRisk =
     f_domPassword && (urlInfo.category === "unknown" || spoofedBrand)
       ? 1.0
@@ -580,29 +582,16 @@ function analyzeUrlFeatures(urlInfo) {
   const f_ipAddress = urlInfo.hasIpAddress ? 1.0 : 0.0;
   const f_atSymbols = urlInfo.numAtSymbols > 0 ? 1.0 : 0.0;
   const f_encoding = urlInfo.hasExcessiveEncoding ? 1.0 : 0.0;
-  const f_suspiciousTLD = suspiciousTLDs.some((tld) => urlInfo.domain.endsWith(tld)) ? 1.0 : 0.0;
+  const f_suspiciousTLD = suspiciousTLDs.some((tld) =>
+    urlInfo.domain.endsWith(tld),
+  )
+    ? 1.0
+    : 0.0;
 
   const rawEntropy = shannonEntropy(urlInfo.domain);
   const f_entropy = Math.min(rawEntropy / 5.0, 1.0);
 
-  const spoofedBrand = checkTyposquatting(urlInfo.domain);
-  if (spoofedBrand) {
-    urlInfo.spoofedBrand = spoofedBrand;
-    if (urlInfo.category === "unknown") {
-      urlInfo.category = determineDomainCategory(
-        "http://" + spoofedBrand + ".com",
-      );
-    }
-  }
-
-  const hasHomoglyphs = checkHomoglyphs(urlInfo.domain);
-  if (hasHomoglyphs) urlInfo.hasHomoglyphs = true;
-  const f_homoglyphs = hasHomoglyphs ? 1.0 : 0.0;
-
-
-
-  const f_suspiciousAge =
-    urlInfo.domainAge && urlInfo.domainAge.isSuspicious ? 1.0 : 0.0;
+  const f_spoofedBrand = spoofedBrand ? 1.0 : 0.0;
 
   const f_pathPlugin =
     urlInfo.pathLength > 12 &&
