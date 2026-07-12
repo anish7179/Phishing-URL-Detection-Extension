@@ -1,3 +1,7 @@
+const offlineBlocklist = new Set([
+  "taeamigo.com",
+  "avedeoiro.com"
+]);
 const suspiciousKeywords = [
   "login",
   "secure",
