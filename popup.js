@@ -90,9 +90,7 @@ document.addEventListener("DOMContentLoaded", function () {
     .querySelectorAll('#settings input[type="checkbox"]')
     .forEach((c) => c.addEventListener("change", saveSettings));
   slider.addEventListener("change", saveSettings);
-  document
-    .getElementById("safe-browsing-key")
-    .addEventListener("change", saveSettings);
+  
   document
     .getElementById("custom-whitelist")
     .addEventListener("change", saveSettings);
@@ -287,9 +285,7 @@ document.addEventListener("DOMContentLoaded", function () {
         checkDomainAge: document.getElementById("check-domain-age").checked,
         advancedAnalysis: document.getElementById("advanced-analysis").checked,
         sensitivityLevel: parseInt(slider.value),
-        safeBrowsingKey: document
-          .getElementById("safe-browsing-key")
-          .value.trim(),
+        
         customWhitelist: document.getElementById("custom-whitelist").value,
       },
     });
