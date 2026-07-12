@@ -693,15 +693,13 @@ chrome.webNavigation.onCompleted.addListener(async (details) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "analyzeUrl") {
     analyzeUrl(message.url, message.checkDomainAge).then(result => {
-      // sendResponse below
-      if (result.classification === "Phishing" && result.confidence > 0.5) {
-        if (result.urlInfo?.domain)
-          updateDomainPhishingCount(
-            result.urlInfo.domain,
-            result.urlInfo.category,
-          );
+      if (result.classification === 'Phishing' && result.confidence > 0.5) {
+        if (result.urlInfo && result.urlInfo.domain) updateDomainPhishingCount(result.urlInfo.domain, result.urlInfo.category);
       }
       sendResponse(result);
+    }).catch(e => {
+      console.error("Fatal Analysis Error:", e);
+      sendResponse({ error: str(e) });
     });
     return true;
   }
