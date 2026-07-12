@@ -422,7 +422,7 @@ async function checkDomainAgeReal(domain) {
 // ── URL Analysis Pipeline ──
 function preprocessUrl(url) {
   try {
-    if (typeof URL === "undefined") return fallbackPreprocess(url);
+    if (!window.URL) return fallbackPreprocess(url);
     if (!url.startsWith("http://") && !url.startsWith("https://"))
       url = "http://" + url;
 
@@ -692,8 +692,7 @@ chrome.webNavigation.onCompleted.addListener(async (details) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "analyzeUrl") {
-    analyzeUrl(message.url, message.checkDomainAge).then(result => {
-      // sendResponse below
+    analyzeUrl(message.url, message.checkDomainAge).then((result) => {
       if (result.classification === "Phishing" && result.confidence > 0.5) {
         if (result.urlInfo?.domain)
           updateDomainPhishingCount(

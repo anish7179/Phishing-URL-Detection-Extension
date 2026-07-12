@@ -112,7 +112,13 @@ document.addEventListener("DOMContentLoaded", function () {
       { action: "analyzeUrl", url, checkDomainAge: true },
       (r) => {
         loading(false);
-        if (r) showResult(r);
+        if (r && r.error) {
+          const el = document.getElementById('result');
+          el.innerHTML = '<div class="card"><div style="color:var(--danger)">Error: ' + r.error + '</div></div>';
+          el.classList.add('active');
+        } else if (r) {
+          showResult(r);
+        }
       },
     );
   }
