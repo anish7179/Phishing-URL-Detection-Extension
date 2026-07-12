@@ -10,67 +10,54 @@
     />
     <style>
       :root {
-        --font: "Inter", -apple-system, sans-serif;
+        --font: "Inter", system-ui, -apple-system, sans-serif;
+        --radius: 10px;
       }
 
-      /* ── Light Theme ── */
       [data-theme="light"] {
-        --bg: #f0f2f8;
+        --bg: #f8f9fb;
         --surface: #ffffff;
-        --surface-2: #f6f7fb;
-        --input-bg: #eef0f6;
-        --border: #dfe2ec;
-        --text-1: #1a1e2e;
-        --text-2: #5c6178;
-        --text-3: #9598a9;
-        --accent: #5b6cf0;
-        --accent-2: #8b5cf6;
-        --accent-soft: rgba(91, 108, 240, 0.1);
-        --gradient: linear-gradient(135deg, #5b6cf0, #8b5cf6);
-        --gradient-soft: linear-gradient(
-          135deg,
-          rgba(91, 108, 240, 0.08),
-          rgba(139, 92, 246, 0.08)
-        );
-        --danger: #ef4444;
-        --danger-soft: rgba(239, 68, 68, 0.08);
-        --success: #10b981;
-        --success-soft: rgba(16, 185, 129, 0.08);
-        --warning: #f59e0b;
-        --warning-soft: rgba(245, 158, 11, 0.08);
-        --card-shadow:
-          0 2px 8px rgba(91, 108, 240, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-        --card-shadow-hover:
-          0 8px 24px rgba(91, 108, 240, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+        --surface-alt: #f3f4f7;
+        --input-bg: #f3f4f7;
+        --border: #e5e7ec;
+        --border-2: #d8dbe3;
+        --text-1: #111827;
+        --text-2: #4b5563;
+        --text-3: #9ca3af;
+        --accent: #2563eb;
+        --accent-hover: #1d4ed8;
+        --accent-bg: rgba(37, 99, 235, 0.06);
+        --danger: #dc2626;
+        --danger-bg: rgba(220, 38, 38, 0.06);
+        --success: #059669;
+        --success-bg: rgba(5, 150, 105, 0.06);
+        --warn: #d97706;
+        --warn-bg: rgba(217, 119, 6, 0.06);
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+        --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
       }
 
-      /* ── Dark Theme ── */
       [data-theme="dark"] {
-        --bg: #0f1117;
-        --surface: #1a1d27;
-        --surface-2: #22252f;
-        --input-bg: #252833;
-        --border: #2d3040;
-        --text-1: #eceef4;
-        --text-2: #9598a9;
-        --text-3: #5c5f6e;
-        --accent: #818cf8;
-        --accent-2: #a78bfa;
-        --accent-soft: rgba(129, 140, 248, 0.12);
-        --gradient: linear-gradient(135deg, #818cf8, #a78bfa);
-        --gradient-soft: linear-gradient(
-          135deg,
-          rgba(129, 140, 248, 0.1),
-          rgba(167, 139, 250, 0.1)
-        );
+        --bg: #111318;
+        --surface: #191b22;
+        --surface-alt: #1f222b;
+        --input-bg: #1f222b;
+        --border: #282c36;
+        --border-2: #333845;
+        --text-1: #e8eaed;
+        --text-2: #8b92a0;
+        --text-3: #555c6b;
+        --accent: #60a5fa;
+        --accent-hover: #3b82f6;
+        --accent-bg: rgba(96, 165, 250, 0.08);
         --danger: #f87171;
-        --danger-soft: rgba(248, 113, 113, 0.12);
+        --danger-bg: rgba(248, 113, 113, 0.08);
         --success: #34d399;
-        --success-soft: rgba(52, 211, 153, 0.12);
-        --warning: #fbbf24;
-        --warning-soft: rgba(251, 191, 36, 0.12);
-        --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        --card-shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.35);
+        --success-bg: rgba(52, 211, 153, 0.08);
+        --warn: #fbbf24;
+        --warn-bg: rgba(251, 191, 36, 0.08);
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.15);
+        --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
 
       * {
@@ -80,27 +67,25 @@
       }
 
       body {
-        width: 390px;
+        width: 380px;
+        max-height: 540px;
+        overflow-y: auto;
         font-family: var(--font);
         background: var(--bg);
         color: var(--text-1);
         font-size: 13px;
         line-height: 1.5;
         transition:
-          background 0.3s,
-          color 0.3s;
-        perspective: 800px;
+          background 0.2s ease,
+          color 0.2s ease;
       }
 
       ::-webkit-scrollbar {
-        width: 4px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent;
+        width: 3px;
       }
       ::-webkit-scrollbar-thumb {
         background: var(--text-3);
-        border-radius: 4px;
+        border-radius: 3px;
       }
 
       /* ── Header ── */
@@ -108,183 +93,137 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 14px 16px;
-        background: var(--gradient);
-        position: relative;
-        overflow: hidden;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
       }
 
-      .header::before {
-        content: "";
-        position: absolute;
-        top: -40%;
-        right: -20%;
-        width: 160px;
-        height: 160px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        pointer-events: none;
-      }
-
-      .header::after {
-        content: "";
-        position: absolute;
-        bottom: -50%;
-        left: -10%;
-        width: 120px;
-        height: 120px;
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 50%;
-        pointer-events: none;
-      }
-
-      .header-left {
+      .h-left {
         display: flex;
         align-items: center;
-        gap: 10px;
-        z-index: 1;
+        gap: 9px;
       }
 
-      .header-left img {
-        width: 28px;
-        height: 28px;
-        filter: brightness(10);
+      .h-left img {
+        width: 24px;
+        height: 24px;
       }
 
-      .header-left h1 {
-        font-size: 15px;
+      .h-left h1 {
+        font-size: 14px;
         font-weight: 600;
-        color: #fff;
-        letter-spacing: -0.2px;
+        letter-spacing: -0.3px;
       }
 
-      .theme-toggle {
-        z-index: 1;
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(8px);
+      .theme-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface-alt);
         cursor: pointer;
-        font-size: 15px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition:
-          background 0.2s,
-          transform 0.2s;
+        font-size: 14px;
         padding: 0;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
       }
 
-      .theme-toggle:hover {
-        background: rgba(255, 255, 255, 0.25);
-        transform: rotate(20deg);
+      .theme-btn:hover {
+        border-color: var(--border-2);
+        background: var(--input-bg);
       }
 
       /* ── Tabs ── */
       .tabs {
         display: flex;
-        gap: 2px;
-        padding: 10px 16px 0;
-        background: var(--bg);
+        gap: 1px;
+        padding: 8px 16px 0;
       }
 
       .tab-btn {
         flex: 1;
-        padding: 9px 0;
+        padding: 7px 0;
         text-align: center;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-bottom: none;
+        background: none;
+        border: none;
         cursor: pointer;
-        color: var(--text-2);
+        color: var(--text-3);
         font-size: 12px;
         font-weight: 500;
         font-family: var(--font);
-        border-radius: 10px 10px 0 0;
-        transition: all 0.2s;
-        position: relative;
+        border-bottom: 2px solid transparent;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
       }
 
       .tab-btn:hover {
-        color: var(--text-1);
-        background: var(--surface-2);
+        color: var(--text-2);
       }
 
       .tab-btn.active {
         color: var(--accent);
-        background: var(--surface);
-        font-weight: 600;
-        box-shadow: 0 -2px 0 var(--accent) inset;
+        border-bottom-color: var(--accent);
       }
 
-      /* ── Tab Content ── */
+      /* ── Content ── */
       .tab-content {
         display: none;
         padding: 14px 16px 16px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-top: none;
-        margin: 0 16px;
-        border-radius: 0 0 12px 12px;
-        margin-bottom: 12px;
       }
 
       .tab-content.active {
         display: block;
       }
 
-      /* ── 3D Card ── */
-      .card-3d {
+      /* ── Card ── */
+      .card {
         background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 12px;
+        border-radius: var(--radius);
         padding: 14px;
         margin-bottom: 10px;
-        box-shadow: var(--card-shadow);
+        box-shadow: var(--shadow-sm);
         transition:
-          transform 0.3s ease,
-          box-shadow 0.3s ease;
-        transform-style: preserve-3d;
+          box-shadow 0.2s,
+          border-color 0.2s;
       }
 
-      .card-3d:hover {
-        transform: translateY(-2px) rotateX(1deg) rotateY(-1deg);
-        box-shadow: var(--card-shadow-hover);
+      .card:hover {
+        box-shadow: var(--shadow-md);
+        border-color: var(--border-2);
       }
 
       /* ── Input ── */
-      .input-wrap {
+      .input-group {
         margin-bottom: 10px;
       }
 
-      .input-wrap input {
+      .input-group input {
         width: 100%;
-        padding: 11px 14px;
+        padding: 10px 12px;
         background: var(--input-bg);
-        border: 1.5px solid var(--border);
-        border-radius: 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
         color: var(--text-1);
         font-size: 13px;
         font-family: var(--font);
         outline: none;
         transition:
-          border-color 0.2s,
-          box-shadow 0.2s,
-          transform 0.2s;
+          border-color 0.15s,
+          box-shadow 0.15s;
       }
 
-      .input-wrap input::placeholder {
+      .input-group input::placeholder {
         color: var(--text-3);
       }
-
-      .input-wrap input:focus {
+      .input-group input:focus {
         border-color: var(--accent);
-        box-shadow:
-          0 0 0 3px var(--accent-soft),
-          0 4px 12px rgba(91, 108, 240, 0.08);
-        transform: translateY(-1px);
+        box-shadow: 0 0 0 2px var(--accent-bg);
       }
 
       /* ── Buttons ── */
@@ -296,330 +235,256 @@
 
       .btn {
         flex: 1;
-        padding: 10px 14px;
-        border: none;
-        border-radius: 10px;
+        padding: 9px 0;
+        border-radius: 8px;
         cursor: pointer;
         font-size: 12px;
-        font-weight: 600;
+        font-weight: 500;
         font-family: var(--font);
+        border: none;
         transition:
-          transform 0.15s,
-          box-shadow 0.2s,
-          opacity 0.15s;
+          opacity 0.12s,
+          transform 0.1s;
       }
 
       .btn:active {
-        transform: scale(0.97) translateY(1px);
+        transform: scale(0.98);
       }
 
       .btn-primary {
-        background: var(--gradient);
+        background: var(--accent);
         color: #fff;
-        box-shadow: 0 4px 14px rgba(91, 108, 240, 0.25);
       }
-
       .btn-primary:hover {
-        box-shadow: 0 6px 20px rgba(91, 108, 240, 0.35);
-        transform: translateY(-1px);
+        background: var(--accent-hover);
       }
 
-      .btn-secondary {
-        background: var(--gradient-soft);
-        color: var(--accent);
-        border: 1px solid var(--accent-soft);
+      .btn-outline {
+        background: var(--surface);
+        color: var(--text-2);
+        border: 1px solid var(--border);
       }
-
-      .btn-secondary:hover {
-        opacity: 0.85;
-        transform: translateY(-1px);
-      }
-
-      .btn-danger {
-        background: var(--danger-soft);
-        color: var(--danger);
-        font-weight: 500;
+      .btn-outline:hover {
+        border-color: var(--border-2);
+        color: var(--text-1);
       }
 
       .btn-sm {
         flex: none;
-        padding: 6px 12px;
+        padding: 5px 12px;
         font-size: 11px;
+      }
+
+      .btn-red {
+        background: var(--danger-bg);
+        color: var(--danger);
+        border: 1px solid transparent;
       }
 
       /* ── Loading ── */
       .loading {
         display: none;
         text-align: center;
-        padding: 28px 16px;
+        padding: 24px;
       }
       .loading.active {
         display: block;
       }
 
-      .spinner-3d {
-        width: 36px;
-        height: 36px;
-        margin: 0 auto 12px;
+      .loader {
+        width: 24px;
+        height: 24px;
+        border: 2.5px solid var(--border);
+        border-top-color: var(--accent);
         border-radius: 50%;
-        background: var(--gradient);
-        animation: spin3d 1.2s ease-in-out infinite;
-        position: relative;
+        margin: 0 auto 8px;
+        animation: rotate 0.7s linear infinite;
       }
 
-      .spinner-3d::after {
-        content: "";
-        position: absolute;
-        inset: 4px;
-        border-radius: 50%;
-        background: var(--surface);
-        border-top: 3px solid var(--accent);
-        border-right: 3px solid transparent;
-        animation: spin 0.8s linear infinite;
-      }
-
-      @keyframes spin {
+      @keyframes rotate {
         to {
           transform: rotate(360deg);
-        }
-      }
-      @keyframes spin3d {
-        0% {
-          transform: perspective(120px) rotateX(0) rotateY(0);
-        }
-        50% {
-          transform: perspective(120px) rotateX(-180deg) rotateY(0);
-        }
-        100% {
-          transform: perspective(120px) rotateX(-180deg) rotateY(-180deg);
         }
       }
 
       .loading p {
         color: var(--text-2);
-        font-size: 13px;
-        font-weight: 500;
+        font-size: 12px;
       }
 
       /* ── Result ── */
-      .result-card {
+      .result {
         display: none;
       }
-      .result-card.active {
+      .result.active {
         display: block;
       }
 
-      .result-hero {
+      .res-top {
         display: flex;
         align-items: center;
-        gap: 14px;
-        margin-bottom: 14px;
+        gap: 12px;
+        margin-bottom: 12px;
       }
 
-      .result-ring {
-        width: 54px;
-        height: 54px;
-        border-radius: 16px;
+      .res-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 24px;
+        font-size: 20px;
         flex-shrink: 0;
-        position: relative;
-        transform-style: preserve-3d;
-        transition: transform 0.4s;
       }
 
-      .result-ring:hover {
-        transform: rotateY(15deg) rotateX(-5deg);
+      .res-icon.bad {
+        background: var(--danger-bg);
+      }
+      .res-icon.ok {
+        background: var(--success-bg);
       }
 
-      .result-ring.is-danger {
-        background: var(--danger-soft);
-        box-shadow: 0 4px 16px rgba(239, 68, 68, 0.15);
+      .res-title {
+        font-size: 14px;
+        font-weight: 600;
       }
-
-      .result-ring.is-safe {
-        background: var(--success-soft);
-        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);
-      }
-
-      .result-title {
-        font-size: 15px;
-        font-weight: 700;
-      }
-      .result-domain {
-        font-size: 12px;
-        color: var(--text-2);
-        word-break: break-all;
-        margin-top: 2px;
-      }
-
-      /* Confidence bar */
-      .conf-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 4px;
-      }
-      .conf-label {
+      .res-domain {
         font-size: 11px;
         color: var(--text-2);
-      }
-      .conf-val {
-        font-size: 12px;
-        font-weight: 700;
+        word-break: break-all;
+        margin-top: 1px;
       }
 
-      .conf-track {
-        height: 8px;
-        background: var(--input-bg);
-        border-radius: 4px;
-        overflow: hidden;
-        margin-bottom: 14px;
-        position: relative;
+      /* Progress bar */
+      .prog-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 3px;
       }
-
-      .conf-fill {
-        height: 100%;
-        border-radius: 4px;
-        transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-        position: relative;
+      .prog-label {
+        font-size: 11px;
+        color: var(--text-3);
       }
-
-      .conf-fill.danger-fill {
-        background: linear-gradient(90deg, #ef4444, #f97316);
-      }
-      .conf-fill.safe-fill {
-        background: linear-gradient(90deg, #10b981, #06b6d4);
-      }
-
-      .conf-fill::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(
-          90deg,
-          transparent 0%,
-          rgba(255, 255, 255, 0.25) 50%,
-          transparent 100%
-        );
-        animation: shimmer 2s ease-in-out infinite;
-      }
-
-      @keyframes shimmer {
-        0% {
-          transform: translateX(-100%);
-        }
-        100% {
-          transform: translateX(100%);
-        }
-      }
-
-      /* Badges */
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 10px;
-        border-radius: 8px;
+      .prog-val {
         font-size: 11px;
         font-weight: 600;
       }
 
-      .badge-danger {
-        background: var(--danger-soft);
-        color: var(--danger);
-      }
-      .badge-safe {
-        background: var(--success-soft);
-        color: var(--success);
-      }
-      .badge-info {
-        background: var(--accent-soft);
-        color: var(--accent);
-      }
-      .badge-warn {
-        background: var(--warning-soft);
-        color: var(--warning);
-      }
-
-      .badges-row {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
+      .prog-track {
+        height: 5px;
+        background: var(--surface-alt);
+        border-radius: 3px;
+        overflow: hidden;
         margin-bottom: 12px;
       }
 
-      /* Detail rows */
-      .detail-section {
+      .prog-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.5s ease;
+        width: 0;
+      }
+
+      .fill-bad {
+        background: var(--danger);
+      }
+      .fill-ok {
+        background: var(--success);
+      }
+
+      /* Tags */
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 500;
+      }
+
+      .tag-red {
+        background: var(--danger-bg);
+        color: var(--danger);
+      }
+      .tag-green {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .tag-blue {
+        background: var(--accent-bg);
+        color: var(--accent);
+      }
+
+      .tags-row {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+      }
+
+      /* Info list */
+      .info-section {
         margin-top: 10px;
       }
 
-      .detail-label {
+      .info-label {
         font-size: 10px;
-        font-weight: 700;
+        font-weight: 600;
         color: var(--text-3);
         text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 6px;
+        letter-spacing: 0.6px;
+        margin-bottom: 5px;
       }
 
-      .detail-item {
+      .info-row {
         display: flex;
-        align-items: flex-start;
-        gap: 8px;
-        padding: 7px 10px;
+        align-items: baseline;
+        gap: 7px;
+        padding: 5px 0;
         font-size: 12px;
         color: var(--text-2);
-        border-radius: 8px;
-        margin-bottom: 4px;
-        transition:
-          background 0.15s,
-          transform 0.15s;
       }
 
-      .detail-item:hover {
-        background: var(--surface-2);
-        transform: translateX(2px);
+      .info-row + .info-row {
+        border-top: 1px solid var(--border);
       }
 
-      .d-dot {
-        width: 6px;
-        height: 6px;
+      .i-dot {
+        width: 4px;
+        height: 4px;
         border-radius: 50%;
-        margin-top: 5px;
         flex-shrink: 0;
+        position: relative;
+        top: -1px;
       }
 
-      .dot-danger {
+      .i-dot.red {
         background: var(--danger);
-        box-shadow: 0 0 6px var(--danger-soft);
       }
-      .dot-safe {
+      .i-dot.green {
         background: var(--success);
-        box-shadow: 0 0 6px var(--success-soft);
       }
 
-      .age-row {
+      .age-bar {
         display: flex;
         justify-content: space-between;
-        padding: 8px 10px;
+        padding: 7px 10px;
+        background: var(--surface-alt);
+        border-radius: 8px;
         font-size: 12px;
         color: var(--text-2);
-        background: var(--surface-2);
-        border-radius: 8px;
         margin-bottom: 8px;
       }
 
-      .age-row strong {
+      .age-bar strong {
         color: var(--text-1);
+        font-weight: 600;
       }
 
-      /* Status */
-      .status-bar {
+      /* Status pill */
+      .status-wrap {
         text-align: center;
         margin-top: 12px;
       }
@@ -627,119 +492,116 @@
       .status-pill {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 6px 14px;
+        gap: 5px;
+        padding: 5px 12px;
         border-radius: 20px;
         font-size: 11px;
         font-weight: 500;
         color: var(--success);
-        background: var(--success-soft);
+        background: var(--success-bg);
       }
 
       .s-dot {
-        width: 6px;
-        height: 6px;
+        width: 5px;
+        height: 5px;
         border-radius: 50%;
         background: var(--success);
-        animation: blink 2s ease-in-out infinite;
+        animation: fade 2s ease-in-out infinite;
       }
 
-      @keyframes blink {
+      @keyframes fade {
         0%,
         100% {
           opacity: 1;
         }
         50% {
-          opacity: 0.3;
+          opacity: 0.25;
         }
       }
 
       /* ── History ── */
-      .sec-header {
+      .sec-top {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
       }
-      .sec-header h2 {
+      .sec-top h2 {
         font-size: 14px;
-        font-weight: 700;
+        font-weight: 600;
       }
 
-      .det-card {
-        background: var(--surface-2);
+      .det-item {
+        background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 12px;
-        margin-bottom: 8px;
-        transition:
-          transform 0.2s,
-          box-shadow 0.2s;
-        transform-style: preserve-3d;
+        border-radius: var(--radius);
+        padding: 10px 12px;
+        margin-bottom: 6px;
+        transition: border-color 0.15s;
       }
 
-      .det-card:hover {
-        transform: translateY(-2px) rotateX(1deg);
-        box-shadow: var(--card-shadow-hover);
+      .det-item:hover {
+        border-color: var(--border-2);
       }
 
       .det-url {
         font-size: 12px;
         font-weight: 500;
         word-break: break-all;
-        margin-bottom: 6px;
+        margin-bottom: 5px;
       }
+
       .det-meta {
         display: flex;
-        gap: 6px;
+        gap: 5px;
         flex-wrap: wrap;
         align-items: center;
       }
       .det-time {
-        font-size: 11px;
+        font-size: 10px;
         color: var(--text-3);
       }
 
-      .empty-state {
+      .empty {
         text-align: center;
-        padding: 30px 16px;
+        padding: 28px;
         color: var(--text-3);
-      }
-      .empty-state p {
-        font-size: 13px;
-        margin-top: 6px;
+        font-size: 12px;
       }
 
       /* ── Settings ── */
-      .settings-group {
-        margin-bottom: 16px;
+      .set-group {
+        margin-bottom: 14px;
       }
-      .settings-group h3 {
-        font-size: 13px;
-        font-weight: 700;
-        margin-bottom: 8px;
+      .set-group h3 {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-2);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
       }
 
       .set-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 10px 0;
-        border-bottom: 1px solid var(--border);
+        padding: 8px 0;
       }
 
-      .set-row:last-child {
-        border-bottom: none;
+      .set-row + .set-row {
+        border-top: 1px solid var(--border);
       }
       .set-label {
         font-size: 13px;
         color: var(--text-2);
       }
 
+      /* Toggle */
       .toggle {
         position: relative;
-        width: 40px;
-        height: 22px;
+        width: 36px;
+        height: 20px;
       }
       .toggle input {
         opacity: 0;
@@ -747,234 +609,184 @@
         height: 0;
       }
 
-      .t-track {
+      .track {
         position: absolute;
         inset: 0;
-        background: var(--input-bg);
-        border-radius: 22px;
+        background: var(--border);
+        border-radius: 20px;
         cursor: pointer;
-        transition: background 0.25s;
+        transition: background 0.2s;
       }
 
-      .t-track::before {
+      .track::before {
         content: "";
         position: absolute;
-        width: 16px;
-        height: 16px;
+        width: 14px;
+        height: 14px;
         left: 3px;
         bottom: 3px;
         background: #fff;
         border-radius: 50%;
-        transition: transform 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        transition: transform 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
       }
 
-      input:checked + .t-track {
-        background: var(--gradient);
+      input:checked + .track {
+        background: var(--accent);
       }
-      input:checked + .t-track::before {
-        transform: translateX(18px);
-      }
-
-      .slider-wrap {
-        margin-top: 4px;
+      input:checked + .track::before {
+        transform: translateX(16px);
       }
 
-      .slider-labels {
+      .slider-section {
+        margin-top: 2px;
+      }
+
+      .slider-ends {
         display: flex;
         justify-content: space-between;
-        font-size: 11px;
+        font-size: 10px;
         color: var(--text-3);
-        margin-bottom: 4px;
+        margin-bottom: 3px;
       }
 
       .range-input {
         width: 100%;
         -webkit-appearance: none;
-        appearance: none;
-        height: 5px;
-        border-radius: 4px;
-        background: var(--input-bg);
+        height: 3px;
+        background: var(--border);
+        border-radius: 3px;
         outline: none;
       }
 
       .range-input::-webkit-slider-thumb {
         -webkit-appearance: none;
-        width: 18px;
-        height: 18px;
+        width: 14px;
+        height: 14px;
         border-radius: 50%;
-        background: var(--gradient);
+        background: var(--accent);
         cursor: pointer;
-        box-shadow: 0 2px 8px rgba(91, 108, 240, 0.3);
-        transition: transform 0.2s;
-      }
-
-      .range-input::-webkit-slider-thumb:hover {
-        transform: scale(1.15);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
       }
 
       .slider-val {
         text-align: center;
-        font-size: 12px;
+        font-size: 11px;
         color: var(--accent);
-        font-weight: 700;
-        margin-top: 4px;
+        font-weight: 600;
+        margin-top: 3px;
       }
 
-      .cat-tags {
+      .cat-list {
         display: flex;
         flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 6px;
-      }
-
-      .cat-tag {
-        padding: 5px 10px;
-        border-radius: 8px;
-        font-size: 11px;
-        font-weight: 500;
-        background: var(--gradient-soft);
-        color: var(--accent);
-        border: 1px solid var(--accent-soft);
-        transition:
-          transform 0.2s,
-          box-shadow 0.2s;
-      }
-
-      .cat-tag:hover {
-        transform: translateY(-2px) scale(1.03);
-        box-shadow: 0 4px 8px var(--accent-soft);
-      }
-
-      /* ── Statistics ── */
-      .total-stat {
-        text-align: center;
-        padding: 20px;
-        background: var(--gradient-soft);
-        border: 1px solid var(--accent-soft);
-        border-radius: 14px;
-        margin-bottom: 14px;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .total-stat::before {
-        content: "";
-        position: absolute;
-        top: -30%;
-        right: -20%;
-        width: 100px;
-        height: 100px;
-        background: var(--accent-soft);
-        border-radius: 50%;
-        pointer-events: none;
-      }
-
-      .total-number {
-        font-size: 36px;
-        font-weight: 700;
-        background: var(--gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        position: relative;
-      }
-
-      .total-label {
-        font-size: 12px;
-        color: var(--text-2);
+        gap: 5px;
         margin-top: 4px;
-        position: relative;
       }
 
-      .bar-chart {
-        margin-bottom: 14px;
+      .cat-chip {
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: 500;
+        background: var(--surface-alt);
+        color: var(--text-2);
+        border: 1px solid var(--border);
+      }
+
+      /* ── Stats ── */
+      .total-card {
+        text-align: center;
+        padding: 16px;
+        background: var(--accent-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        margin-bottom: 12px;
+      }
+
+      .total-num {
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .total-sub {
+        font-size: 11px;
+        color: var(--text-2);
+        margin-top: 2px;
+      }
+
+      .chart {
+        margin-bottom: 12px;
       }
 
       .bar-row {
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin-bottom: 8px;
+        gap: 7px;
+        margin-bottom: 6px;
       }
-
       .bar-name {
-        width: 76px;
+        width: 72px;
         font-size: 11px;
         color: var(--text-2);
         text-align: right;
         flex-shrink: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
-
       .bar-track {
         flex: 1;
-        height: 7px;
-        background: var(--input-bg);
-        border-radius: 4px;
+        height: 5px;
+        background: var(--surface-alt);
+        border-radius: 3px;
         overflow: hidden;
       }
-
       .bar-fill {
         height: 100%;
-        border-radius: 4px;
-        background: var(--gradient);
-        transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-        position: relative;
+        border-radius: 3px;
+        background: var(--accent);
+        transition: width 0.5s ease;
       }
-
-      .bar-fill::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.2),
-          transparent
-        );
-        animation: shimmer 2.5s ease-in-out infinite;
-      }
-
-      .bar-fill.danger-bar {
-        background: linear-gradient(90deg, #ef4444, #f97316);
+      .bar-fill.red {
+        background: var(--danger);
       }
       .bar-val {
-        width: 24px;
-        font-size: 11px;
-        font-weight: 700;
+        width: 22px;
+        font-size: 10px;
+        font-weight: 600;
         color: var(--text-1);
       }
 
-      .mt-box {
-        padding: 10px 14px;
-        background: var(--danger-soft);
-        border: 1px solid rgba(239, 68, 68, 0.12);
-        border-radius: 10px;
-        font-size: 12px;
+      .mt-note {
+        padding: 8px 12px;
+        background: var(--danger-bg);
+        border-radius: 8px;
+        font-size: 11px;
         color: var(--text-2);
-        margin-top: 10px;
+        margin-top: 8px;
       }
 
-      .mt-box strong {
+      .mt-note strong {
         color: var(--danger);
       }
 
-      /* ── Footer ── */
+      /* Footer */
       .footer {
-        padding: 10px 16px;
+        padding: 8px;
         text-align: center;
-        font-size: 11px;
+        font-size: 10px;
         color: var(--text-3);
       }
     </style>
   </head>
   <body>
     <div class="header">
-      <div class="header-left">
-        <img src="icons/icon48.png" alt="Logo" />
+      <div class="h-left">
+        <img src="icons/icon48.png" alt="" />
         <h1>Phishing Detector</h1>
       </div>
-      <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+      <button class="theme-btn" id="theme-toggle" title="Toggle theme">
         🌙
       </button>
     </div>
@@ -986,9 +798,8 @@
       <button class="tab-btn" data-tab="statistics">Stats</button>
     </div>
 
-    <!-- ANALYZER -->
     <div id="analyzer" class="tab-content active">
-      <div class="input-wrap">
+      <div class="input-group">
         <input
           type="text"
           id="url-input"
@@ -998,45 +809,40 @@
         />
       </div>
       <div class="btn-row">
-        <button id="analyze-btn" class="btn btn-primary">🔍 Analyze URL</button>
-        <button id="analyze-current-btn" class="btn btn-secondary">
-          🛡️ Current Page
+        <button id="analyze-btn" class="btn btn-primary">Analyze URL</button>
+        <button id="analyze-current-btn" class="btn btn-outline">
+          Current Page
         </button>
       </div>
-
       <div id="loading" class="loading">
-        <div class="spinner-3d"></div>
-        <p>Scanning URL...</p>
+        <div class="loader"></div>
+        <p>Analyzing...</p>
       </div>
-
-      <div id="result" class="result-card"></div>
-
-      <div class="status-bar">
+      <div id="result" class="result"></div>
+      <div class="status-wrap">
         <span class="status-pill"
           ><span class="s-dot"></span>Protection Active</span
         >
       </div>
     </div>
 
-    <!-- HISTORY -->
     <div id="history" class="tab-content">
-      <div class="sec-header">
-        <h2>Detection History</h2>
-        <button id="clear-history" class="btn btn-danger btn-sm">Clear</button>
+      <div class="sec-top">
+        <h2>History</h2>
+        <button id="clear-history" class="btn btn-red btn-sm">Clear</button>
       </div>
       <div id="detections-list"></div>
     </div>
 
-    <!-- SETTINGS -->
     <div id="settings" class="tab-content">
-      <div class="settings-group">
+      <div class="set-group">
         <h3>Protection</h3>
-        <div class="card-3d">
+        <div class="card">
           <div class="set-row">
             <span class="set-label">Real-time protection</span
             ><label class="toggle"
               ><input type="checkbox" id="real-time-protection" checked /><span
-                class="t-track"
+                class="track"
               ></span
             ></label>
           </div>
@@ -1044,7 +850,7 @@
             <span class="set-label">Warning overlays</span
             ><label class="toggle"
               ><input type="checkbox" id="show-warnings" checked /><span
-                class="t-track"
+                class="track"
               ></span
             ></label>
           </div>
@@ -1052,7 +858,7 @@
             <span class="set-label">Domain age check</span
             ><label class="toggle"
               ><input type="checkbox" id="check-domain-age" checked /><span
-                class="t-track"
+                class="track"
               ></span
             ></label>
           </div>
@@ -1060,29 +866,17 @@
             <span class="set-label">Advanced analysis</span
             ><label class="toggle"
               ><input type="checkbox" id="advanced-analysis" checked /><span
-                class="t-track"
+                class="track"
               ></span
-            ></label>
-          </div>
-          <div class="set-row">
-            <span class="set-label">Suspicious TLD monitoring</span
-            ><label class="toggle"
-              ><input
-                type="checkbox"
-                id="monitor-suspicious-tlds"
-                checked /><span class="t-track"></span
             ></label>
           </div>
         </div>
       </div>
-
-      <div class="settings-group">
+      <div class="set-group">
         <h3>Sensitivity</h3>
-        <div class="card-3d">
-          <div class="slider-wrap">
-            <div class="slider-labels">
-              <span>Low</span><span>Medium</span><span>High</span>
-            </div>
+        <div class="card">
+          <div class="slider-section">
+            <div class="slider-ends"><span>Low</span><span>High</span></div>
             <input
               type="range"
               id="sensitivity-level"
@@ -1097,47 +891,44 @@
           </div>
         </div>
       </div>
-
-      <div class="settings-group">
+      <div class="set-group">
         <h3>Categories</h3>
-        <div class="cat-tags">
-          <span class="cat-tag">🏦 Financial</span>
-          <span class="cat-tag">🛒 E-commerce</span>
-          <span class="cat-tag">👥 Social</span>
-          <span class="cat-tag">🎮 Gaming</span>
-          <span class="cat-tag">🎓 Education</span>
-          <span class="cat-tag">🎬 Streaming</span>
-          <span class="cat-tag">💻 Technology</span>
-          <span class="cat-tag">🏛️ Government</span>
-          <span class="cat-tag">🏥 Healthcare</span>
-          <span class="cat-tag">📰 News</span>
+        <div class="cat-list">
+          <span class="cat-chip">🏦 Financial</span>
+          <span class="cat-chip">🛒 E-commerce</span>
+          <span class="cat-chip">👥 Social</span>
+          <span class="cat-chip">🎮 Gaming</span>
+          <span class="cat-chip">🎓 Education</span>
+          <span class="cat-chip">🎬 Streaming</span>
+          <span class="cat-chip">💻 Technology</span>
+          <span class="cat-chip">🏛️ Government</span>
+          <span class="cat-chip">🏥 Healthcare</span>
+          <span class="cat-chip">📰 News</span>
         </div>
       </div>
     </div>
 
-    <!-- STATISTICS -->
     <div id="statistics" class="tab-content">
-      <div class="sec-header">
-        <h2>Threat Intelligence</h2>
-        <button id="refresh-stats" class="btn btn-secondary btn-sm">
+      <div class="sec-top">
+        <h2>Statistics</h2>
+        <button id="refresh-stats" class="btn btn-outline btn-sm">
           Refresh
         </button>
       </div>
-      <div class="total-stat">
-        <div class="total-number" id="total-count">0</div>
-        <div class="total-label">Phishing Attempts Detected</div>
+      <div class="total-card">
+        <div class="total-num" id="total-count">0</div>
+        <div class="total-sub">Phishing attempts detected</div>
       </div>
-      <div class="detail-label">By Category</div>
-      <div id="category-statistics" class="bar-chart"></div>
-      <div class="detail-label">Top Domains</div>
-      <div id="domain-statistics" class="bar-chart"></div>
-      <div id="most-targeted-section" class="mt-box" style="display: none">
-        Most targeted: <strong id="most-targeted-category">None</strong>
+      <div class="info-label">By Category</div>
+      <div id="category-statistics" class="chart"></div>
+      <div class="info-label">Top Domains</div>
+      <div id="domain-statistics" class="chart"></div>
+      <div id="most-targeted-section" class="mt-note" style="display: none">
+        Most targeted: <strong id="most-targeted-category"></strong>
       </div>
     </div>
 
     <div class="footer">Phishing URL Detector v1.0</div>
-
     <script src="popup.js"></script>
   </body>
 </html>
