@@ -653,20 +653,32 @@
       .range-input {
         width: 100%;
         -webkit-appearance: none;
-        height: 3px;
-        background: var(--border);
-        border-radius: 3px;
+        appearance: none;
+        height: 4px;
+        background: linear-gradient(
+          to right,
+          var(--accent) var(--val, 50%),
+          var(--border) var(--val, 50%)
+        );
+        border-radius: 4px;
         outline: none;
       }
 
       .range-input::-webkit-slider-thumb {
         -webkit-appearance: none;
-        width: 14px;
-        height: 14px;
+        appearance: none;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
-        background: var(--accent);
+        background: #fff;
+        border: 2px solid var(--accent);
         cursor: pointer;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        transition: transform 0.15s;
+      }
+
+      .range-input::-webkit-slider-thumb:hover {
+        transform: scale(1.15);
       }
 
       .slider-val {
@@ -726,14 +738,12 @@
         margin-bottom: 6px;
       }
       .bar-name {
-        width: 72px;
+        width: 90px;
         font-size: 11px;
         color: var(--text-2);
-        text-align: right;
+        text-align: left;
         flex-shrink: 0;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
       }
       .bar-track {
         flex: 1;
@@ -773,10 +783,27 @@
 
       /* Footer */
       .footer {
-        padding: 8px;
+        padding: 8px 16px;
         text-align: center;
         font-size: 10px;
         color: var(--text-3);
+      }
+
+      .footer a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .footer a:hover {
+        text-decoration: underline;
+      }
+
+      .sensitivity-desc {
+        font-size: 11px;
+        color: var(--text-3);
+        margin-top: 6px;
+        line-height: 1.4;
       }
     </style>
   </head>
@@ -889,21 +916,10 @@
               Level <span id="sensitivity-display">3</span>
             </div>
           </div>
-        </div>
-      </div>
-      <div class="set-group">
-        <h3>Categories</h3>
-        <div class="cat-list">
-          <span class="cat-chip">🏦 Financial</span>
-          <span class="cat-chip">🛒 E-commerce</span>
-          <span class="cat-chip">👥 Social</span>
-          <span class="cat-chip">🎮 Gaming</span>
-          <span class="cat-chip">🎓 Education</span>
-          <span class="cat-chip">🎬 Streaming</span>
-          <span class="cat-chip">💻 Technology</span>
-          <span class="cat-chip">🏛️ Government</span>
-          <span class="cat-chip">🏥 Healthcare</span>
-          <span class="cat-chip">📰 News</span>
+          <p class="sensitivity-desc">
+            Controls how aggressively URLs are flagged. Higher levels catch more
+            threats but may produce false positives.
+          </p>
         </div>
       </div>
     </div>
@@ -928,7 +944,12 @@
       </div>
     </div>
 
-    <div class="footer">Phishing URL Detector v1.0</div>
+    <div class="footer">
+      Phishing URL Detector v1.0 · by
+      <a href="https://github.com/anish7179" target="_blank" rel="noopener"
+        >anish7179</a
+      >
+    </div>
     <script src="popup.js"></script>
   </body>
 </html>

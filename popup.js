@@ -37,10 +37,14 @@ document.addEventListener("DOMContentLoaded", function () {
   // ── Sensitivity ──
   const slider = document.getElementById("sensitivity-level");
   const sliderVal = document.getElementById("sensitivity-display");
-  slider.addEventListener(
-    "input",
-    () => (sliderVal.textContent = slider.value),
-  );
+
+  function updateSliderFill() {
+    sliderVal.textContent = slider.value;
+    const pct = ((slider.value - 1) / 4) * 100;
+    slider.style.setProperty("--val", pct + "%");
+  }
+
+  slider.addEventListener("input", updateSliderFill);
 
   // ── Actions ──
   document.getElementById("analyze-btn").addEventListener("click", () => {
@@ -231,7 +235,9 @@ document.addEventListener("DOMContentLoaded", function () {
         s.advancedAnalysis !== false;
       if (s.sensitivityLevel) {
         slider.value = s.sensitivityLevel;
-        sliderVal.textContent = s.sensitivityLevel;
+        updateSliderFill();
+      } else {
+        updateSliderFill();
       }
     });
   }
