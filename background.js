@@ -388,35 +388,34 @@ function checkHomoglyphs(domain) {
 // ── RDAP (WHOIS) Domain Age ──
 async function checkDomainAgeReal(domain) {
   try {
-    const res = await fetch(`https://rdap.org/domain/${domain}`, {
-      headers: { Accept: "application/rdap+json" },
-      signal: AbortSignal.timeout(3000),
+    const fetchPromise = fetch(`https://rdap.org/domain/${domain}`, {
+      headers: { 'Accept': 'application/rdap+json' }
     });
+    
+    // Explicit 3-second timeout race condition for aggressive adblockers (like Brave Shields)
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("RDAP Timeout Exception")), 2500);
+    });
+    
+    const res = await Promise.race([fetchPromise, timeoutPromise]);
     if (!res.ok) throw new Error("RDAP query failed");
+    
     const data = await res.json();
-    const regEvent = data.events?.find((e) => e.eventAction === "registration");
+    const regEvent = data.events?.find(e => e.eventAction === 'registration');
     if (regEvent && regEvent.eventDate) {
       const regDate = new Date(regEvent.eventDate);
-      const ageInDays = Math.floor(
-        (Date.now() - regDate.getTime()) / (1000 * 60 * 60 * 24),
-      );
+      const ageInDays = Math.floor((Date.now() - regDate.getTime()) / (1000 * 60 * 60 * 24));
       return {
         domain,
         ageInDays,
-        registrationDate: regDate.toISOString().split("T")[0],
-        isSuspicious: ageInDays < 30,
+        registrationDate: regDate.toISOString().split('T')[0],
+        isSuspicious: ageInDays < 30
       };
     }
   } catch (e) {
-    console.error("RDAP domain age error:", e);
+    console.warn("RDAP bypass caught:", e.message);
   }
-  // Fallback / graceful degradation if RDAP fails (or returns generic error)
-  return {
-    domain,
-    ageInDays: "Unknown",
-    registrationDate: "Unknown",
-    isSuspicious: false,
-  };
+  return { domain, ageInDays: 'Unknown', registrationDate: 'Unknown', isSuspicious: false };
 }
 
 // ── URL Analysis Pipeline ──
@@ -699,7 +698,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse(result);
     }).catch(e => {
       console.error("Fatal Analysis Error:", e);
-      sendResponse({ error: str(e) });
+      sendResponse({ error: String(e) });
     });
     return true;
   }
