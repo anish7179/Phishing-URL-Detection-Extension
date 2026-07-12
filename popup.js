@@ -1,539 +1,486 @@
-document.addEventListener('DOMContentLoaded', function() {
-  // Tab switching
-  const tabButtons = document.querySelectorAll('.tab-button');
-  const tabContents = document.querySelectorAll('.tab-content');
-  
-  tabButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const tabId = button.getAttribute('data-tab');
-      
-      // Update active tab button
-      tabButtons.forEach(btn => btn.classList.remove('active'));
-      button.classList.add('active');
-      
-      // Show active tab content
-      tabContents.forEach(content => {
-        content.classList.remove('active');
-        if (content.id === tabId) {
-          content.classList.add('active');
-        }
-      });
-      
-      // Load detections if history tab
-      if (tabId === 'history') {
-        loadDetections();
-      } else if (tabId === 'statistics') {
-        loadStatistics();
-      }
+document.addEventListener("DOMContentLoaded", function () {
+  // ── Tab switching ──
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  const tabContents = document.querySelectorAll(".tab-content");
+
+  tabButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = button.dataset.tab;
+      tabButtons.forEach((b) => b.classList.remove("active"));
+      tabContents.forEach((c) => c.classList.remove("active"));
+      button.classList.add("active");
+      document.getElementById(target).classList.add("active");
+
+      if (target === "history") loadDetections();
+      if (target === "settings") loadSettings();
+      if (target === "statistics") loadStatistics();
     });
   });
-  
-  // Load settings
-  loadSettings();
-  
-  // Analyze URL button click
-  document.getElementById('analyze-btn').addEventListener('click', function() {
-    const url = document.getElementById('url-input').value.trim();
+
+  // ── Sensitivity display ──
+  const sensitivitySlider = document.getElementById("sensitivity-level");
+  const sensitivityDisplay = document.getElementById("sensitivity-display");
+  sensitivitySlider.addEventListener("input", function () {
+    sensitivityDisplay.textContent = this.value;
+  });
+
+  // ── Analyze URL button ──
+  document.getElementById("analyze-btn").addEventListener("click", function () {
+    const url = document.getElementById("url-input").value.trim();
     if (url) {
       showLoading(true);
       analyzeUrl(url);
     }
   });
-  
-  // Analyze current page button click
-  document.getElementById('analyze-current-btn').addEventListener('click', function() {
-    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-      if (tabs && tabs[0] && tabs[0].url) {
-        const url = tabs[0].url;
-        document.getElementById('url-input').value = url;
-        showLoading(true);
-        analyzeUrl(url);
-      }
-    });
-  });
-  
-  // Clear history button click
-  document.getElementById('clear-history').addEventListener('click', function() {
-    chrome.runtime.sendMessage({ action: "clearDetections" }, function() {
-      loadDetections();
-    });
-  });
-  
-  // Save settings when changed
-  document.getElementById('real-time-protection').addEventListener('change', saveSettings);
-  document.getElementById('show-warnings').addEventListener('change', saveSettings);
-  document.getElementById('check-domain-age').addEventListener('change', saveSettings);
-  document.getElementById('advanced-analysis').addEventListener('change', saveSettings);
-  document.getElementById('monitor-suspicious-tlds').addEventListener('change', saveSettings);
-  document.getElementById('sensitivity-level').addEventListener('change', saveSettings);
-  
-  // Refresh statistics button click
-  document.getElementById('refresh-stats').addEventListener('click', function() {
-    loadStatistics();
-  });
 
-  // Loading indicator
-  function showLoading(show) {
-    const loadingDiv = document.getElementById('loading');
-    const resultDiv = document.getElementById('result');
-    
-    if (show) {
-      loadingDiv.style.display = 'block';
-      resultDiv.style.display = 'none';
-    } else {
-      loadingDiv.style.display = 'none';
-    }
-  }
-  
-  // Analyze URL function
-  function analyzeUrl(url) {
-    chrome.runtime.sendMessage({ 
-      action: "analyzeUrl", 
-      url: url,
-      checkDomainAge: document.getElementById('check-domain-age').checked,
-      sensitivityLevel: parseInt(document.getElementById('sensitivity-level').value)
-    }, function(response) {
-      showLoading(false);
-      displayResult(response);
+  // Enter key trigger
+  document
+    .getElementById("url-input")
+    .addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        const url = this.value.trim();
+        if (url) {
+          showLoading(true);
+          analyzeUrl(url);
+        }
+      }
     });
-  }
-  
-  // Display result function
-  function displayResult(result) {
-    const resultDiv = document.getElementById('result');
-    resultDiv.style.display = 'block';
-    resultDiv.className = 'result ' + result.classification.toLowerCase();
-    
-    // Extract risk factors
-    const explanationText = result.explanation;
-    let riskFactorsHTML = '';
-    
-    if (explanationText.includes('Risk Factors Detected:')) {
-      const riskFactorsSection = explanationText.split('Risk Factors Detected:')[1];
-      if (riskFactorsSection) {
-        const riskFactors = riskFactorsSection.split('\n').filter(line => line.trim().startsWith('-'));
-        
-        if (riskFactors.length > 0) {
-          riskFactorsHTML = `
-            <div class="risk-factors">
-              <div class="domain-age-title">Risk Factors:</div>
-              ${riskFactors.map(factor => `
-                <div class="risk-factor-item">
-                  <span class="risk-indicator"></span>
-                  ${factor.replace('-', '').trim()}
-                </div>
-              `).join('')}
-            </div>
-          `;
+
+  // ── Analyze Current Page ──
+  document
+    .getElementById("analyze-current-btn")
+    .addEventListener("click", function () {
+      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        if (tabs && tabs[0] && tabs[0].url) {
+          const url = tabs[0].url;
+          document.getElementById("url-input").value = url;
+          showLoading(true);
+          analyzeUrl(url);
         }
-      }
-    }
-    
-    // Domain age section
-    let domainAgeHTML = '';
-    if (result.domainAge) {
-      const ageStatus = result.domainAge.isSuspicious ? 
-        '<span style="color: var(--danger-color);">New Domain (Suspicious)</span>' : 
-        '<span style="color: var(--success-color);">Established Domain</span>';
-      
-      domainAgeHTML = `
-        <div class="domain-age">
-          <div class="domain-age-title">Domain Age:</div>
-          <div>${result.domainAge.ageInDays} days (Registered: ${result.domainAge.registrationDate})</div>
-          <div>Status: ${ageStatus}</div>
-        </div>
-      `;
-    }
-    
-    // Add domain category
-    let categoryHTML = '';
-    if (result.urlInfo && result.urlInfo.category) {
-      // Get category icon
-      let categoryIcon = '💻'; // Default tech icon
-      switch(result.urlInfo.category) {
-        case 'education': categoryIcon = '🎓'; break;
-        case 'ecommerce': categoryIcon = '🛒'; break;
-        case 'social': categoryIcon = '👥'; break;
-        case 'financial': categoryIcon = '🏦'; break;
-        case 'gaming': categoryIcon = '🎮'; break;
-        case 'streaming': categoryIcon = '🎬'; break;
-        case 'technology': categoryIcon = '💻'; break;
-        case 'government': categoryIcon = '🏛️'; break;
-        case 'healthcare': categoryIcon = '🏥'; break;
-        case 'news': categoryIcon = '📰'; break;
-      }
-      
-      const categoryName = result.urlInfo.category.charAt(0).toUpperCase() + result.urlInfo.category.slice(1);
-      categoryHTML = `
-        <div style="margin-top: 8px;">
-          <span class="domain-category">
-            <span class="category-icon">${categoryIcon}</span>${categoryName}
-          </span>
-        </div>
-      `;
-    }
-    
-    // Check for suspicious TLD
-    let tldHTML = '';
-    const suspiciousTLDs = ['.tk', '.ml', '.ga', '.cf', '.gq', '.xyz', '.top', '.work',
-      '.date', '.bid', '.stream', '.download', '.loan'];
-    
-    if (result.urlInfo && result.urlInfo.domain) {
-      const domain = result.urlInfo.domain.toLowerCase();
-      const hasSuspiciousTLD = suspiciousTLDs.some(tld => domain.endsWith(tld));
-      
-      if (hasSuspiciousTLD && document.getElementById('monitor-suspicious-tlds').checked) {
-        tldHTML = `
-          <span class="suspicious-tld">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-            Suspicious TLD
-          </span>
-        `;
-      }
-    }
-    
-    // Add phishing count information if available
-    let phishingCountHTML = '';
-    if (result.phishingCount && result.phishingCount > 0) {
-      phishingCountHTML = `
-        <div style="margin-top: 8px; padding: 8px; background-color: ${result.phishingCount > 1 ? 'rgba(234, 67, 53, 0.1)' : 'rgba(251, 188, 5, 0.1)'}; border-radius: 4px;">
-          <div style="font-weight: 500;">Previous Detections:</div>
-          <div>This domain has been detected in ${result.phishingCount} phishing attempts.</div>
-        </div>
-      `;
-    }
-    
-    // Build extracted features HTML
-    let featuresHTML = '';
-    if (result.urlInfo) {
-      featuresHTML = `
-        <div class="domain-age" style="margin-top: 12px;">
-          <div class="domain-age-title">Extracted Features:</div>
-          <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
-            <tr>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">Domain:</td>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">${result.urlInfo.domain}</td>
-            </tr>
-            <tr>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">Domain Length:</td>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">${result.urlInfo.domainLength} characters</td>
-            </tr>
-            <tr>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">Path Length:</td>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">${result.urlInfo.pathLength} characters</td>
-            </tr>
-            <tr>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">Number of Dots:</td>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">${result.urlInfo.numDots}</td>
-            </tr>
-            <tr>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">Number of Hyphens:</td>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">${result.urlInfo.numHyphens}</td>
-            </tr>
-            <tr>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">Number of @ Symbols:</td>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">${result.urlInfo.numAtSymbols}</td>
-            </tr>
-            <tr>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">Number of = Symbols:</td>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">${result.urlInfo.numEquals}</td>
-            </tr>
-            <tr>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">Number of Digits:</td>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">${result.urlInfo.numDigits}</td>
-            </tr>
-            <tr>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">Subdomain Levels:</td>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">${result.urlInfo.subdomainLevels}</td>
-            </tr>
-            <tr>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">Has Suspicious Words:</td>
-              <td style="padding: 3px 0; border-bottom: 1px solid var(--border-color);">${result.urlInfo.hasSuspiciousWords ? 'Yes' : 'No'}</td>
-            </tr>
-            <tr>
-              <td style="padding: 3px 0;">Has IP Address:</td>
-              <td style="padding: 3px 0;">${result.urlInfo.hasIpAddress ? 'Yes' : 'No'}</td>
-            </tr>
-          </table>
-        </div>
-      `;
-    }
-    
-    // Build the result HTML
-    resultDiv.innerHTML = `
-      <h2>${result.classification}</h2>
-      <div class="confidence">Confidence: ${(result.confidence * 100).toFixed(2)}%</div>
-      <div class="explanation">
-        Analysis of: ${result.url}
-        ${categoryHTML}
-        ${tldHTML}
-        ${phishingCountHTML}
-        ${domainAgeHTML}
-        ${featuresHTML}
-        ${riskFactorsHTML}
-      </div>
-    `;
-  }
-  
-  // Load detection history
-  function loadDetections() {
-    chrome.runtime.sendMessage({ action: "getDetections" }, function(detections) {
-      const detectionsListDiv = document.getElementById('detections-list');
-      
-      if (!detections || detections.length === 0) {
-        detectionsListDiv.innerHTML = '<div class="no-detections">No detections yet.</div>';
-        return;
-      }
-      
-      detectionsListDiv.innerHTML = '';
-      
-      // Sort by timestamp (newest first)
-      detections.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      
-      detections.forEach(detection => {
-        const detectionDiv = document.createElement('div');
-        detectionDiv.className = 'detection-item';
-        
-        const date = new Date(detection.timestamp);
-        const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-        
-        // Get category icon
-        let categoryIcon = '💻'; // Default tech icon
-        let categoryName = detection.category || 'unknown';
-        switch(categoryName) {
-          case 'education': categoryIcon = '🎓'; break;
-          case 'ecommerce': categoryIcon = '🛒'; break;
-          case 'social': categoryIcon = '👥'; break;
-          case 'financial': categoryIcon = '🏦'; break;
-          case 'gaming': categoryIcon = '🎮'; break;
-          case 'streaming': categoryIcon = '🎬'; break;
-          case 'technology': categoryIcon = '💻'; break;
-          case 'government': categoryIcon = '🏛️'; break;
-          case 'healthcare': categoryIcon = '🏥'; break;
-          case 'news': categoryIcon = '📰'; break;
-        }
-        categoryName = categoryName.charAt(0).toUpperCase() + categoryName.slice(1);
-        
-        // Check for suspicious TLD
-        const suspiciousTLDs = ['.tk', '.ml', '.ga', '.cf', '.gq', '.xyz', '.top', '.work',
-          '.date', '.bid', '.stream', '.download', '.loan'];
-        
-        let tldHTML = '';
-        try {
-          const domain = new URL(detection.url).hostname;
-          const hasSuspiciousTLD = suspiciousTLDs.some(tld => domain.endsWith(tld));
-          
-          if (hasSuspiciousTLD && document.getElementById('monitor-suspicious-tlds').checked) {
-            tldHTML = `
-              <span class="suspicious-tld" style="margin-left: 8px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                  <line x1="12" y1="9" x2="12" y2="13"></line>
-                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                </svg>
-                Suspicious TLD
-              </span>
-            `;
-          }
-        } catch (e) {
-          console.error("Invalid URL in detection history:", e);
-        }
-        
-        // Add phishing count information
-        let phishingCountHTML = '';
-        if (detection.phishingCount && detection.phishingCount > 1) {
-          phishingCountHTML = `
-            <div style="margin-top: 6px; font-size: 12px; color: var(--danger-color);">
-              ⚠️ Multiple detections from this domain (${detection.phishingCount})
-            </div>
-          `;
-        }
-        
-        detectionDiv.innerHTML = `
-          <div class="detection-url">${detection.url}</div>
-          <div class="detection-time">${formattedDate}</div>
-          <div class="detection-result ${detection.classification.toLowerCase()}">${detection.classification}</div>
-          <div>Confidence: ${(detection.confidence * 100).toFixed(2)}%</div>
-          <div style="margin-top: 8px;">
-            <span class="domain-category">
-              <span class="category-icon">${categoryIcon}</span>${categoryName}
-            </span>
-            ${tldHTML}
-          </div>
-          ${phishingCountHTML}
-          ${detection.domainAge ? `
-            <div style="margin-top: 8px; font-size: 12px;">
-              Domain Age: ${detection.domainAge.ageInDays} days
-              (${detection.domainAge.isSuspicious ? 'Suspicious' : 'Established'})
-            </div>
-          ` : ''}
-        `;
-        
-        detectionsListDiv.appendChild(detectionDiv);
       });
     });
-  }
-  
-  // Load settings from storage
-  function loadSettings() {
-    chrome.storage.local.get('settings', (data) => {
-      const settings = data.settings || {
-        realTimeProtection: true,
-        showWarnings: true,
-        checkDomainAge: true,
-        advancedAnalysis: true,
-        sensitivityLevel: 3,
-        monitorSuspiciousTlds: true
-      };
-      
-      document.getElementById('real-time-protection').checked = settings.realTimeProtection;
-      document.getElementById('show-warnings').checked = settings.showWarnings;
-      document.getElementById('check-domain-age').checked = settings.checkDomainAge;
-      document.getElementById('advanced-analysis').checked = settings.advancedAnalysis;
-      
-      // Handle sensitivity slider
-      const sensitivitySlider = document.getElementById('sensitivity-level');
-      if (sensitivitySlider) {
-        sensitivitySlider.value = settings.sensitivityLevel;
-      }
-      
-      // Set monitor suspicious TLDs checkbox
-      document.getElementById('monitor-suspicious-tlds').checked = 
-        settings.monitorSuspiciousTlds !== undefined ? settings.monitorSuspiciousTlds : true;
+
+  // ── Settings ──
+  document
+    .querySelectorAll('#settings input[type="checkbox"]')
+    .forEach((cb) => {
+      cb.addEventListener("change", saveSettings);
     });
+  sensitivitySlider.addEventListener("change", saveSettings);
+
+  // ── Clear History ──
+  document
+    .getElementById("clear-history")
+    .addEventListener("click", function () {
+      chrome.runtime.sendMessage({ action: "clearDetections" }, function () {
+        loadDetections();
+      });
+    });
+
+  // ── Refresh Stats ──
+  document
+    .getElementById("refresh-stats")
+    .addEventListener("click", function () {
+      loadStatistics();
+    });
+
+  // ────────────────────────────────
+  //  Loading / Scanner
+  // ────────────────────────────────
+  function showLoading(show) {
+    const scanner = document.getElementById("loading");
+    const resultCard = document.getElementById("result");
+    if (show) {
+      scanner.classList.add("active");
+      resultCard.classList.remove("active");
+    } else {
+      scanner.classList.remove("active");
+    }
   }
-  
-  // Save settings to storage
-  function saveSettings() {
-    const settings = {
-      realTimeProtection: document.getElementById('real-time-protection').checked,
-      showWarnings: document.getElementById('show-warnings').checked,
-      checkDomainAge: document.getElementById('check-domain-age').checked,
-      advancedAnalysis: document.getElementById('advanced-analysis').checked,
-      sensitivityLevel: parseInt(document.getElementById('sensitivity-level').value),
-      monitorSuspiciousTlds: document.getElementById('monitor-suspicious-tlds').checked
+
+  // ────────────────────────────────
+  //  Analyze URL
+  // ────────────────────────────────
+  function analyzeUrl(url) {
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = "http://" + url;
+    }
+    chrome.runtime.sendMessage(
+      { action: "analyzeUrl", url: url, checkDomainAge: true },
+      function (result) {
+        showLoading(false);
+        if (result) displayResult(result);
+      },
+    );
+  }
+
+  // ────────────────────────────────
+  //  Display Result
+  // ────────────────────────────────
+  function displayResult(result) {
+    const resultCard = document.getElementById("result");
+    const isPhishing = result.classification === "Phishing";
+    const confidence = (result.confidence * 100).toFixed(1);
+    const gaugeColor = isPhishing ? "var(--danger)" : "var(--success)";
+    const gaugeGlow = isPhishing ? "var(--danger-glow)" : "var(--success-glow)";
+    const circumference = 2 * Math.PI * 30; // r=30 → ~188.5
+
+    // Build risk factors from explanation
+    const riskFactors = [];
+    if (result.urlInfo) {
+      if (result.urlInfo.hasSuspiciousWords)
+        riskFactors.push("Contains suspicious keywords");
+      if (result.urlInfo.hasIpAddress)
+        riskFactors.push("Uses IP address instead of domain");
+      if (result.urlInfo.domainLength > 30)
+        riskFactors.push("Unusually long domain name");
+      if (result.urlInfo.numDots > 3)
+        riskFactors.push(
+          `Excessive dots in domain (${result.urlInfo.numDots})`,
+        );
+      if (result.urlInfo.numHyphens > 2)
+        riskFactors.push(`Multiple hyphens (${result.urlInfo.numHyphens})`);
+      if (result.urlInfo.numAtSymbols > 0)
+        riskFactors.push("Contains @ symbol (highly suspicious)");
+      if (result.urlInfo.subdomainLevels > 2)
+        riskFactors.push(
+          `Deep subdomain nesting (${result.urlInfo.subdomainLevels} levels)`,
+        );
+    }
+    if (result.domainAge && result.domainAge.isSuspicious) {
+      riskFactors.push(
+        `Recently registered domain (${result.domainAge.ageInDays} days old)`,
+      );
+    }
+    if (result.phishingCount && result.phishingCount > 1) {
+      riskFactors.push(
+        `${result.phishingCount} phishing attempts from this domain`,
+      );
+    }
+
+    // Category badge
+    const category =
+      result.category ||
+      (result.urlInfo && result.urlInfo.category) ||
+      "unknown";
+    const categoryIcons = {
+      financial: "🏦",
+      ecommerce: "🛒",
+      social: "👥",
+      gaming: "🎮",
+      education: "🎓",
+      streaming: "🎬",
+      technology: "💻",
+      government: "🏛️",
+      healthcare: "🏥",
+      news: "📰",
+      unknown: "🌐",
     };
-    
-    chrome.storage.local.set({ settings });
-    
-    // Send updated settings to background script
-    chrome.runtime.sendMessage({ action: "updateSettings", settings });
-  }
-  
-  // Load statistics
-  function loadStatistics() {
-    chrome.runtime.sendMessage({ action: "getAllPhishingStatistics" }, function(statistics) {
-      console.log("Received statistics:", statistics);
-      
-      if (!statistics || !statistics.totalPhishingAttempts) {
-        console.log("No statistics received or empty statistics");
-        statistics = {
-          domainCounts: {},
-          categoryCounts: {},
-          categoryPercentages: {},
-          totalPhishingAttempts: 0,
-          mostTargetedCategory: ['unknown', 0]
-        };
-      }
-      
-      // Update total count
-      document.getElementById('total-count').textContent = statistics.totalPhishingAttempts || 0;
-      
-      // Update most targeted category
-      const mostTargetedCategory = statistics.mostTargetedCategory ? 
-        (statistics.mostTargetedCategory[0].charAt(0).toUpperCase() + 
-         statistics.mostTargetedCategory[0].slice(1)) : 'None yet';
-      
-      document.getElementById('most-targeted-category').textContent = mostTargetedCategory;
-      
-      // Update category statistics
-      const categoryStatsDiv = document.getElementById('category-statistics');
-      categoryStatsDiv.innerHTML = '';
-      
-      // Get sorted categories by count
-      const categories = Object.keys(statistics.categoryCounts || {})
-        .filter(category => statistics.categoryCounts[category] > 0)
-        .sort((a, b) => statistics.categoryCounts[b] - statistics.categoryCounts[a]);
-      
-      if (categories.length > 0) {
-        categories.slice(0, 4).forEach(category => {
-          const count = statistics.categoryCounts[category];
-          const percentage = statistics.totalPhishingAttempts ? 
-            ((count / statistics.totalPhishingAttempts) * 100).toFixed(1) + '%' : '0%';
-          
-          const categoryName = category.charAt(0).toUpperCase() + category.slice(1);
-          let categoryIcon = '💻'; // Default tech icon
-          
-          switch(category) {
-            case 'education': categoryIcon = '🎓'; break;
-            case 'ecommerce': categoryIcon = '🛒'; break;
-            case 'social': categoryIcon = '👥'; break;
-            case 'financial': categoryIcon = '🏦'; break;
-            case 'gaming': categoryIcon = '🎮'; break;
-            case 'streaming': categoryIcon = '🎬'; break;
-            case 'technology': categoryIcon = '💻'; break;
-            case 'government': categoryIcon = '🏛️'; break;
-            case 'healthcare': categoryIcon = '🏥'; break;
-            case 'news': categoryIcon = '📰'; break;
-          }
-          
-          const div = document.createElement('div');
-          div.className = 'category-stat-item';
-          div.innerHTML = `
-            <div class="category-stat-name">
-              <span class="category-icon">${categoryIcon}</span>${categoryName}
+
+    let html = `
+      <div class="glass-card">
+        <div class="result-header">
+          <div class="gauge-wrap">
+            <svg class="gauge-ring" viewBox="0 0 72 72">
+              <circle class="gauge-bg" cx="36" cy="36" r="30"/>
+              <circle class="gauge-fill" cx="36" cy="36" r="30"
+                style="stroke: ${gaugeColor}; filter: drop-shadow(0 0 6px ${gaugeGlow});"/>
+            </svg>
+            <div class="gauge-text">
+              <span class="gauge-value" style="color: ${gaugeColor};">${confidence}%</span>
+              <span class="gauge-label">Confidence</span>
             </div>
-            <div class="category-stat-value">${count}</div>
-            <div class="category-stat-percentage">${percentage}</div>
-          `;
-          
-          categoryStatsDiv.appendChild(div);
-        });
-      } else {
-        categoryStatsDiv.innerHTML = '<div style="padding: 8px;">No data available yet</div>';
-      }
-      
-      // Update domain statistics
-      const domainStatsDiv = document.getElementById('domain-statistics');
-      domainStatsDiv.innerHTML = '';
-      
-      // Get domains with phishing counts
-      const domains = Object.keys(statistics.domainCounts || {})
-        .filter(domain => statistics.domainCounts[domain] > 0)
-        .sort((a, b) => statistics.domainCounts[b] - statistics.domainCounts[a]);
-      
-      if (domains.length > 0) {
-        domains.slice(0, 4).forEach(domain => {
-          const count = statistics.domainCounts[domain];
-          const percentage = statistics.totalPhishingAttempts ? 
-            ((count / statistics.totalPhishingAttempts) * 100).toFixed(1) + '%' : '0%';
-          
-          const div = document.createElement('div');
-          div.className = 'category-stat-item';
-          div.innerHTML = `
-            <div class="category-stat-name" style="word-break: break-all;">
-              ${domain}
+          </div>
+          <div class="result-info">
+            <h2>${isPhishing ? "⚠️ Threat Detected" : "✅ URL is Safe"}</h2>
+            <div class="result-domain">${result.urlInfo ? result.urlInfo.domain : result.url}</div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
+              <span class="result-badge ${isPhishing ? "badge-danger" : "badge-safe"}">
+                ${isPhishing ? "🚫 Phishing" : "🔒 Legitimate"}
+              </span>
+              <span class="result-badge badge-category">
+                ${categoryIcons[category] || "🌐"} ${category.charAt(0).toUpperCase() + category.slice(1)}
+              </span>
             </div>
-            <div class="category-stat-value">${count}</div>
-            <div class="category-stat-percentage">${percentage}</div>
-          `;
-          
-          domainStatsDiv.appendChild(div);
-        });
-      } else {
-        domainStatsDiv.innerHTML = '<div style="padding: 8px;">No data available yet</div>';
+          </div>
+        </div>`;
+
+    // Domain age
+    if (result.domainAge) {
+      html += `
+        <div class="domain-age-card">
+          <span>Domain Age: <strong>${result.domainAge.ageInDays} days</strong></span>
+          <span>Registered: <strong>${result.domainAge.registrationDate}</strong></span>
+        </div>`;
+    }
+
+    // Risk factors
+    if (riskFactors.length > 0) {
+      html += `<div class="risk-section">
+        <div class="risk-title">Risk Factors</div>
+        <div class="risk-list">`;
+      riskFactors.forEach((factor) => {
+        html += `<div class="risk-item"><span class="risk-dot"></span>${factor}</div>`;
+      });
+      html += `</div></div>`;
+    } else if (!isPhishing) {
+      html += `<div class="risk-section">
+        <div class="risk-title">Analysis</div>
+        <div class="risk-list">
+          <div class="risk-item safe-item"><span class="risk-dot"></span>No suspicious patterns detected</div>
+          <div class="risk-item safe-item"><span class="risk-dot"></span>Domain structure looks normal</div>
+        </div>
+      </div>`;
+    }
+
+    html += `</div>`;
+
+    resultCard.innerHTML = html;
+    resultCard.classList.add("active");
+
+    // Animate gauge
+    requestAnimationFrame(() => {
+      const gaugeFill = resultCard.querySelector(".gauge-fill");
+      if (gaugeFill) {
+        const offset = circumference - circumference * result.confidence;
+        gaugeFill.style.strokeDashoffset = offset;
       }
     });
   }
-  
-  // Load current page URL on popup open
-  chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-    if (tabs && tabs[0] && tabs[0].url && tabs[0].url.startsWith('http')) {
-      document.getElementById('url-input').value = tabs[0].url;
+
+  // ────────────────────────────────
+  //  Load Detection History
+  // ────────────────────────────────
+  function loadDetections() {
+    chrome.runtime.sendMessage(
+      { action: "getDetections" },
+      function (detections) {
+        const list = document.getElementById("detections-list");
+        if (!detections || detections.length === 0) {
+          list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🛡️</div>
+            <p>No threats detected yet</p>
+          </div>`;
+          return;
+        }
+
+        let html = "";
+        detections.slice(0, 50).forEach((det) => {
+          const isPhishing = det.classification === "Phishing";
+          const time = new Date(det.timestamp).toLocaleString();
+          const conf = det.confidence
+            ? (det.confidence * 100).toFixed(1) + "%"
+            : "N/A";
+          const category = det.category || "unknown";
+          const categoryIcons = {
+            financial: "🏦",
+            ecommerce: "🛒",
+            social: "👥",
+            gaming: "🎮",
+            education: "🎓",
+            streaming: "🎬",
+            technology: "💻",
+            government: "🏛️",
+            healthcare: "🏥",
+            news: "📰",
+            unknown: "🌐",
+          };
+
+          html += `
+          <div class="detection-card">
+            <div class="detection-url">${det.url}</div>
+            <div class="detection-meta">
+              <span class="result-badge ${isPhishing ? "badge-danger" : "badge-safe"}">
+                ${isPhishing ? "🚫 Phishing" : "🔒 Safe"} · ${conf}
+              </span>
+              <span class="result-badge badge-category">
+                ${categoryIcons[category] || "🌐"} ${category}
+              </span>
+              <span class="detection-time">${time}</span>
+            </div>
+          </div>`;
+        });
+
+        list.innerHTML = html;
+      },
+    );
+  }
+
+  // ────────────────────────────────
+  //  Load Settings
+  // ────────────────────────────────
+  function loadSettings() {
+    chrome.storage.local.get("settings", function (data) {
+      if (data.settings) {
+        const s = data.settings;
+        document.getElementById("real-time-protection").checked =
+          s.realTimeProtection !== false;
+        document.getElementById("show-warnings").checked =
+          s.showWarnings !== false;
+        document.getElementById("check-domain-age").checked =
+          s.checkDomainAge !== false;
+        document.getElementById("advanced-analysis").checked =
+          s.advancedAnalysis !== false;
+        if (s.sensitivityLevel) {
+          sensitivitySlider.value = s.sensitivityLevel;
+          sensitivityDisplay.textContent = s.sensitivityLevel;
+        }
+      }
+    });
+  }
+
+  // ────────────────────────────────
+  //  Save Settings
+  // ────────────────────────────────
+  function saveSettings() {
+    const newSettings = {
+      realTimeProtection: document.getElementById("real-time-protection")
+        .checked,
+      showWarnings: document.getElementById("show-warnings").checked,
+      checkDomainAge: document.getElementById("check-domain-age").checked,
+      advancedAnalysis: document.getElementById("advanced-analysis").checked,
+      sensitivityLevel: parseInt(sensitivitySlider.value),
+    };
+    chrome.runtime.sendMessage({
+      action: "updateSettings",
+      settings: newSettings,
+    });
+  }
+
+  // ────────────────────────────────
+  //  Load Statistics
+  // ────────────────────────────────
+  function loadStatistics() {
+    chrome.runtime.sendMessage(
+      { action: "getAllPhishingStatistics" },
+      function (stats) {
+        if (!stats) return;
+
+        // Total count with counter animation
+        const totalEl = document.getElementById("total-count");
+        animateCounter(totalEl, stats.totalPhishingAttempts || 0);
+
+        // Category bar chart
+        const catContainer = document.getElementById("category-statistics");
+        const counts = stats.categoryCounts || {};
+        const maxCount = Math.max(...Object.values(counts), 1);
+
+        const categoryIcons = {
+          financial: "🏦",
+          ecommerce: "🛒",
+          social: "👥",
+          gaming: "🎮",
+          education: "🎓",
+          streaming: "🎬",
+          technology: "💻",
+          government: "🏛️",
+          healthcare: "🏥",
+          news: "📰",
+          unknown: "🌐",
+        };
+
+        // Sort by count descending
+        const sorted = Object.entries(counts)
+          .filter(([k]) => k !== "unknown")
+          .sort((a, b) => b[1] - a[1]);
+
+        let catHtml = "";
+        sorted.forEach(([cat, count]) => {
+          const pct = (count / maxCount) * 100;
+          const icon = categoryIcons[cat] || "🌐";
+          catHtml += `
+          <div class="bar-row">
+            <span class="bar-label">${icon} ${cat}</span>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 0%;" data-width="${pct}%"></div>
+            </div>
+            <span class="bar-count">${count}</span>
+          </div>`;
+        });
+        catContainer.innerHTML = catHtml;
+
+        // Animate bars
+        requestAnimationFrame(() => {
+          catContainer.querySelectorAll(".bar-fill").forEach((bar) => {
+            bar.style.width = bar.dataset.width;
+          });
+        });
+
+        // Domain statistics
+        const domContainer = document.getElementById("domain-statistics");
+        const domainCounts = stats.domainCounts || {};
+        const domSorted = Object.entries(domainCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 8);
+
+        const domMax = domSorted.length > 0 ? domSorted[0][1] : 1;
+
+        let domHtml = "";
+        if (domSorted.length === 0) {
+          domHtml =
+            '<div class="empty-state"><p style="font-size:12px;">No domain data yet</p></div>';
+        } else {
+          domSorted.forEach(([domain, count]) => {
+            const pct = (count / domMax) * 100;
+            const shortDomain =
+              domain.length > 12 ? domain.substring(0, 12) + "…" : domain;
+            domHtml += `
+            <div class="bar-row">
+              <span class="bar-label" title="${domain}">${shortDomain}</span>
+              <div class="bar-track">
+                <div class="bar-fill" style="width: 0%; background: linear-gradient(90deg, var(--danger), #cc3344);" data-width="${pct}%"></div>
+              </div>
+              <span class="bar-count">${count}</span>
+            </div>`;
+          });
+        }
+        domContainer.innerHTML = domHtml;
+
+        // Animate domain bars
+        requestAnimationFrame(() => {
+          domContainer.querySelectorAll(".bar-fill").forEach((bar) => {
+            bar.style.width = bar.dataset.width;
+          });
+        });
+
+        // Most targeted
+        const mtSection = document.getElementById("most-targeted-section");
+        const mtLabel = document.getElementById("most-targeted-category");
+        if (stats.mostTargetedCategory && stats.mostTargetedCategory[1] > 0) {
+          mtSection.style.display = "block";
+          const icon = categoryIcons[stats.mostTargetedCategory[0]] || "🌐";
+          mtLabel.textContent = `${icon} ${stats.mostTargetedCategory[0]} (${stats.mostTargetedCategory[1]} attempts)`;
+        } else {
+          mtSection.style.display = "none";
+        }
+      },
+    );
+  }
+
+  // ── Counter Animation ──
+  function animateCounter(el, target) {
+    const duration = 800;
+    const start = parseInt(el.textContent) || 0;
+    const startTime = performance.now();
+
+    function update(time) {
+      const elapsed = time - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(start + (target - start) * eased);
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  }
+
+  // ── Initial loads ──
+  loadSettings();
+
+  // Pre-fill current tab URL
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    if (tabs && tabs[0] && tabs[0].url && tabs[0].url.startsWith("http")) {
+      document.getElementById("url-input").value = tabs[0].url;
     }
   });
 });

@@ -2,162 +2,207 @@
 
 // Create and append warning overlay to the page
 function createWarningOverlay(result) {
-    // Remove any existing overlay first
-    removeWarningOverlay();
-    
-    // Create overlay container
-    const overlay = document.createElement('div');
-    overlay.id = 'phishing-detector-warning';
-    overlay.style.cssText = `
+  removeWarningOverlay();
+
+  const overlay = document.createElement("div");
+  overlay.id = "phishing-detector-warning";
+  overlay.style.cssText = `
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(234, 67, 53, 0.9);
+      background: rgba(10, 10, 20, 0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       z-index: 2147483647;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      animation: overlayFadeIn 0.3s ease;
     `;
-    
-    // Create warning content
-    const content = document.createElement('div');
-    content.style.cssText = `
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+
+  const style = document.createElement("style");
+  style.textContent = `
+      @keyframes overlayFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes cardSlideIn {
+        from { opacity: 0; transform: translateY(20px) scale(0.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      @keyframes pulseRing {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.4); }
+        50% { box-shadow: 0 0 0 12px rgba(255, 71, 87, 0); }
+      }
+    `;
+  overlay.appendChild(style);
+
+  const content = document.createElement("div");
+  content.style.cssText = `
+      background: linear-gradient(145deg, rgba(26, 26, 46, 0.98), rgba(18, 18, 31, 0.98));
+      border: 1px solid rgba(255, 71, 87, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 71, 87, 0.1);
       width: 90%;
-      max-width: 600px;
-      padding: 24px;
+      max-width: 520px;
+      padding: 36px;
       text-align: center;
+      animation: cardSlideIn 0.4s ease 0.1s both;
     `;
-    
-    // Warning icon and title
-    content.innerHTML = `
-      <div style="color: #EA4335; font-size: 48px; margin-bottom: 16px;">⚠️</div>
-      <h1 style="color: #EA4335; font-size: 24px; margin-bottom: 16px;">Warning: Potential Phishing Detected</h1>
-      <p style="color: #202124; font-size: 16px; margin-bottom: 24px;">
-        This website has been detected as a potential phishing site with 
-        <strong>${(result.confidence * 100).toFixed(1)}%</strong> confidence.
+
+  // Warning icon with pulse
+  content.innerHTML = `
+      <div style="
+        width: 72px; height: 72px; margin: 0 auto 20px;
+        background: rgba(255, 71, 87, 0.12);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 36px;
+        animation: pulseRing 2s ease-in-out infinite;
+      ">⚠️</div>
+      <h1 style="
+        color: #ff4757;
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        letter-spacing: -0.3px;
+      ">Phishing Threat Detected</h1>
+      <p style="
+        color: #8b8ba3;
+        font-size: 14px;
+        margin-bottom: 24px;
+        line-height: 1.5;
+      ">
+        This website has been flagged as a potential phishing site with
+        <strong style="color: #ff4757;">${(result.confidence * 100).toFixed(1)}%</strong> confidence.
       </p>
     `;
-    
-    // Add domain information if available
-    if (result.urlInfo && result.urlInfo.domain) {
-      const domainInfo = document.createElement('div');
-      domainInfo.style.cssText = `
-        background-color: #F8F9FA;
+
+  // Domain info card
+  if (result.urlInfo && result.urlInfo.domain) {
+    const infoCard = document.createElement("div");
+    infoCard.style.cssText = `
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
         padding: 16px;
-        border-radius: 8px;
+        border-radius: 10px;
         margin-bottom: 24px;
         text-align: left;
       `;
-      
-      // Add domain age if available
-      let domainAgeText = '';
-      if (result.domainAge) {
-        domainAgeText = `
-          <p style="margin: 8px 0;">
-            Domain Age: <strong>${result.domainAge.ageInDays} days</strong>
+
+    let infoHtml = `
+        <p style="margin: 6px 0; color: #e8e8f0; font-size: 13px;">
+          🌐 Domain: <strong>${result.urlInfo.domain}</strong>
+        </p>`;
+
+    if (result.domainAge) {
+      infoHtml += `
+          <p style="margin: 6px 0; color: #8b8ba3; font-size: 13px;">
+            📅 Domain Age: <strong style="color: ${result.domainAge.isSuspicious ? "#ff4757" : "#e8e8f0"};">
+            ${result.domainAge.ageInDays} days</strong>
             (Registered: ${result.domainAge.registrationDate})
-          </p>
-        `;
-      }
-      
-      // Add phishing count if available
-      let phishingCountText = '';
-      if (result.phishingCount && result.phishingCount > 0) {
-        phishingCountText = `
-          <p style="margin: 8px 0; color: #EA4335;">
-            <strong>This domain has been detected in ${result.phishingCount} phishing attempts.</strong>
-          </p>
-        `;
-      }
-      
-      domainInfo.innerHTML = `
-        <p style="margin: 8px 0;">Domain: <strong>${result.urlInfo.domain}</strong></p>
-        ${domainAgeText}
-        ${phishingCountText}
-      `;
-      
-      content.appendChild(domainInfo);
+          </p>`;
     }
-    
-    // Add action buttons
-    const buttons = document.createElement('div');
-    buttons.style.cssText = `
+
+    if (result.phishingCount && result.phishingCount > 0) {
+      infoHtml += `
+          <p style="margin: 6px 0; color: #ff4757; font-size: 13px;">
+            🚫 <strong>${result.phishingCount} phishing attempts</strong> from this domain.
+          </p>`;
+    }
+
+    infoCard.innerHTML = infoHtml;
+    content.appendChild(infoCard);
+  }
+
+  // Buttons
+  const buttons = document.createElement("div");
+  buttons.style.cssText = `
       display: flex;
       justify-content: center;
-      gap: 16px;
+      gap: 12px;
     `;
-    
-    // Back to safety button
-    const backButton = document.createElement('button');
-    backButton.innerText = 'Back to Safety';
-    backButton.style.cssText = `
-      background-color: #4285F4;
-      color: white;
+
+  const backButton = document.createElement("button");
+  backButton.innerText = "← Back to Safety";
+  backButton.style.cssText = `
+      background: linear-gradient(135deg, #00d4ff, #0099cc);
+      color: #000;
       border: none;
-      padding: 12px 24px;
-      border-radius: 4px;
-      font-weight: 500;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
       cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+      transition: all 0.2s;
     `;
-    backButton.addEventListener('click', () => {
-      history.back();
-    });
-    
-    // Proceed anyway button
-    const proceedButton = document.createElement('button');
-    proceedButton.innerText = 'Proceed Anyway';
-    proceedButton.style.cssText = `
-      background-color: transparent;
-      color: #5F6368;
-      border: 1px solid #DADCE0;
-      padding: 12px 24px;
-      border-radius: 4px;
-      font-weight: 500;
-      cursor: pointer;
-    `;
-    proceedButton.addEventListener('click', () => {
-      removeWarningOverlay();
-    });
-    
-    buttons.appendChild(backButton);
-    buttons.appendChild(proceedButton);
-    content.appendChild(buttons);
-    overlay.appendChild(content);
-    document.body.appendChild(overlay);
-  }
-  
-  // Remove warning overlay from page
-  function removeWarningOverlay() {
-    const existingOverlay = document.getElementById('phishing-detector-warning');
-    if (existingOverlay) {
-      existingOverlay.remove();
-    }
-  }
-  
-  // Listen for messages from background script
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'showWarning') {
-      createWarningOverlay(message.data);
-      sendResponse({ success: true });
-    }
+  backButton.addEventListener("mouseenter", () => {
+    backButton.style.boxShadow = "0 6px 25px rgba(0, 212, 255, 0.5)";
+    backButton.style.transform = "translateY(-1px)";
   });
-  
-  // Ensure the extension works correctly when navigating to new pages
-  // This is necessary because content scripts might be loaded after
-  // the DOM is already rendered
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeContentScript);
-  } else {
-    initializeContentScript();
+  backButton.addEventListener("mouseleave", () => {
+    backButton.style.boxShadow = "0 4px 15px rgba(0, 212, 255, 0.3)";
+    backButton.style.transform = "translateY(0)";
+  });
+  backButton.addEventListener("click", () => history.back());
+
+  const proceedButton = document.createElement("button");
+  proceedButton.innerText = "Proceed Anyway";
+  proceedButton.style.cssText = `
+      background: transparent;
+      color: #5a5a72;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    `;
+  proceedButton.addEventListener("mouseenter", () => {
+    proceedButton.style.borderColor = "rgba(255, 255, 255, 0.2)";
+    proceedButton.style.color = "#8b8ba3";
+  });
+  proceedButton.addEventListener("mouseleave", () => {
+    proceedButton.style.borderColor = "rgba(255, 255, 255, 0.1)";
+    proceedButton.style.color = "#5a5a72";
+  });
+  proceedButton.addEventListener("click", () => removeWarningOverlay());
+
+  buttons.appendChild(backButton);
+  buttons.appendChild(proceedButton);
+  content.appendChild(buttons);
+  overlay.appendChild(content);
+  document.body.appendChild(overlay);
+}
+
+function removeWarningOverlay() {
+  const existingOverlay = document.getElementById("phishing-detector-warning");
+  if (existingOverlay) {
+    existingOverlay.remove();
   }
-  
-  function initializeContentScript() {
-    // This ensures that any message handlers are set up before messages arrive
-    console.log('Phishing URL Detector content script initialized');
+}
+
+// Listen for messages from background script
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "showWarning") {
+    createWarningOverlay(message.data);
+    sendResponse({ success: true });
   }
+});
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeContentScript);
+} else {
+  initializeContentScript();
+}
+
+function initializeContentScript() {
+  console.log("Phishing URL Detector content script initialized");
+}
