@@ -508,11 +508,12 @@ function fallbackPreprocess(url) {
   };
 }
 
-function analyzeUrlFeatures(urlInfo) {
+function analyzeUrlFeatures(urlInfo, domainAge, url, domSignals) {\n  urlInfo.domSignals = domSignals || { passwordField: false, externalForm: false, hiddenIframe: false };
   // ──────────────────────────────────────────────
   // ML: Logistic Regression Subsystem
   // ──────────────────────────────────────────────
   // 1. Feature Extraction (Normalization)
+  if (!urlInfo.domSignals) urlInfo.domSignals = { passwordField: false, externalForm: false, hiddenIframe: false };
   const f_domPassword = urlInfo.domSignals.passwordField ? 1.0 : 0.0;
   const f_domExternal = urlInfo.domSignals.externalForm ? 1.0 : 0.0;
   const f_domHidden = urlInfo.domSignals.hiddenIframe ? 1.0 : 0.0;
@@ -621,6 +622,9 @@ async function analyzeUrl(url, checkAgeOpt = true) {
 
   const domainAge = await agePromise;
   urlInfo.domainAge = domainAge;
+
+  const domSignals = await fetchPageSignals(url);
+  urlInfo.domSignals = domSignals || { passwordField: false, externalForm: false, hiddenIframe: false };
 
   // 3. Analytics & Score Calculation
   const result = analyzeUrlFeatures(urlInfo);
