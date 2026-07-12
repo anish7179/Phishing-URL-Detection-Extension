@@ -543,8 +543,8 @@ function fallbackPreprocess(url) {
   };
 }
 
-function analyzeUrlFeatures(urlInfo, domainAge, url, domSignals) {
-  urlInfo.domSignals = domSignals || {
+function analyzeUrlFeatures(urlInfo) {
+  urlInfo.domSignals = urlInfo.domSignals || {
     passwordField: false,
     externalForm: false,
     hiddenIframe: false,
@@ -562,6 +562,14 @@ function analyzeUrlFeatures(urlInfo, domainAge, url, domSignals) {
   const f_domPassword = urlInfo.domSignals.passwordField ? 1.0 : 0.0;
   const f_domExternal = urlInfo.domSignals.externalForm ? 1.0 : 0.0;
   const f_domHidden = urlInfo.domSignals.hiddenIframe ? 1.0 : 0.0;
+  const spoofedBrand = checkTyposquatting(urlInfo.domain);
+  if (spoofedBrand) {
+    urlInfo.spoofedBrand = spoofedBrand;
+    if (urlInfo.category === "unknown") {
+      urlInfo.category = determineDomainCategory("http://" + spoofedBrand + ".com");
+    }
+  }
+  
   const f_domRisk =
     f_domPassword && (urlInfo.category === "unknown" || spoofedBrand)
       ? 1.0
@@ -572,6 +580,7 @@ function analyzeUrlFeatures(urlInfo, domainAge, url, domSignals) {
   const f_ipAddress = urlInfo.hasIpAddress ? 1.0 : 0.0;
   const f_atSymbols = urlInfo.numAtSymbols > 0 ? 1.0 : 0.0;
   const f_encoding = urlInfo.hasExcessiveEncoding ? 1.0 : 0.0;
+  const f_suspiciousTLD = suspiciousTLDs.some((tld) => urlInfo.domain.endsWith(tld)) ? 1.0 : 0.0;
 
   const rawEntropy = shannonEntropy(urlInfo.domain);
   const f_entropy = Math.min(rawEntropy / 5.0, 1.0);
@@ -585,35 +594,12 @@ function analyzeUrlFeatures(urlInfo, domainAge, url, domSignals) {
       );
     }
   }
-  const f_spoofedBrand = spoofedBrand ? 1.0 : 0.0;
 
   const hasHomoglyphs = checkHomoglyphs(urlInfo.domain);
   if (hasHomoglyphs) urlInfo.hasHomoglyphs = true;
   const f_homoglyphs = hasHomoglyphs ? 1.0 : 0.0;
 
-  const suspiciousTLDs = [
-    ".tk",
-    ".ml",
-    ".ga",
-    ".cf",
-    ".gq",
-    ".xyz",
-    ".top",
-    ".zip",
-    ".click",
-    ".link",
-    ".hol.es",
-    ".pe.hu",
-    ".000webhostapp.com",
-    ".servehttp.com",
-    ".rf.gd",
-    ".epizy.com",
-  ];
-  const f_suspiciousTLD = suspiciousTLDs.some((tld) =>
-    urlInfo.domain.endsWith(tld),
-  )
-    ? 1.0
-    : 0.0;
+
 
   const f_suspiciousAge =
     urlInfo.domainAge && urlInfo.domainAge.isSuspicious ? 1.0 : 0.0;
@@ -629,8 +615,8 @@ function analyzeUrlFeatures(urlInfo, domainAge, url, domSignals) {
     urlInfo.path.toLowerCase().includes("chase")
       ? 1.0
       : 0.0;
-  const f_urlLen = Math.min(url.length / 200.0, 1.0);
-  const f_dots = Math.min((url.match(/\./g) || []).length / 8.0, 1.0);
+  const f_urlLen = Math.min(urlInfo.url.length / 200.0, 1.0);
+  const f_dots = Math.min((urlInfo.url.match(/\./g) || []).length / 8.0, 1.0);
   const f_subdomains = Math.min(
     Math.max(urlInfo.domain.split(".").length - 2, 0) / 4.0,
     1.0,
@@ -749,7 +735,7 @@ async function analyzeUrl(url, checkAgeOpt = true) {
   urlInfo.domainAge = domainAge;
 
   const domSignals = await fetchPageSignals(url);
-  urlInfo.domSignals = domSignals || {
+  urlInfo.domSignals = urlInfo.domSignals || {
     passwordField: false,
     externalForm: false,
     hiddenIframe: false,
