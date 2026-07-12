@@ -385,7 +385,6 @@ function checkHomoglyphs(domain) {
   return domain.includes("xn--") || /[а-яА-Яα-ωΑ-Ω]/.test(domain);
 }
 
-
 // ── RDAP (WHOIS) Domain Age ──
 async function checkDomainAgeReal(domain) {
   try {
@@ -475,7 +474,6 @@ function analyzeUrlFeatures(urlInfo) {
   let score = 0.0;
   const sensMultiplier = settings.sensitivityLevel / 3;
 
-  
   if (urlInfo.hasSuspiciousWords) score += 0.4 * sensMultiplier;
   if (urlInfo.domainLength > 35) score += 0.3 * sensMultiplier;
   if (urlInfo.numHyphens > 2) score += 0.3 * sensMultiplier;
@@ -558,21 +556,15 @@ async function analyzeUrl(url, checkAgeOpt = true) {
     return buildWhitelistedResult(url, urlInfo);
   }
 
-  // 2. Fetch Data (RDAP & SafeBrowsing)
+  // 2. Fetch Data (RDAP)
   let agePromise =
     settings.checkDomainAge && checkAgeOpt
       ? checkDomainAgeReal(urlInfo.domain)
       : Promise.resolve(null);
-  let sbPromise = settings.advancedAnalysis
-    ? checkSafeBrowsingAPI(url)
-    : Promise.resolve(false);
 
-  const [domainAge, isSafeBrowsingHit] = await Promise.all([
-    agePromise,
-    sbPromise,
-  ]);
+  const domainAge = await agePromise;
   urlInfo.domainAge = domainAge;
-  
+
   // 3. Analytics & Score Calculation
   const result = analyzeUrlFeatures(urlInfo);
 
