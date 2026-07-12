@@ -385,35 +385,6 @@ function checkHomoglyphs(domain) {
   return domain.includes("xn--") || /[а-яА-Яα-ωΑ-Ω]/.test(domain);
 }
 
-// ── Google Safe Browsing APIs ──
-async function checkSafeBrowsingAPI(url) {
-  if (!settings.safeBrowsingKey) return false; // Graceful fallback
-  try {
-    const payload = {
-      client: { clientId: "phishing-detector-ext", clientVersion: "1.0.0" },
-      threatInfo: {
-        threatTypes: ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE"],
-        platformTypes: ["ANY_PLATFORM"],
-        threatEntryTypes: ["URL"],
-        threatEntries: [{ url }],
-      },
-    };
-    const res = await fetch(
-      `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${settings.safeBrowsingKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      },
-    );
-    if (!res.ok) return false;
-    const json = await res.json();
-    return json && json.matches && json.matches.length > 0;
-  } catch (e) {
-    console.error("Safe Browsing API Error:", e);
-    return false;
-  }
-}
 
 // ── RDAP (WHOIS) Domain Age ──
 async function checkDomainAgeReal(domain) {
@@ -500,12 +471,11 @@ function fallbackPreprocess(url) {
   };
 }
 
-function analyzeUrlFeatures(urlInfo, isSafeBrowsingHit) {
+function analyzeUrlFeatures(urlInfo) {
   let score = 0.0;
   const sensMultiplier = settings.sensitivityLevel / 3;
 
-  if (isSafeBrowsingHit) score += 0.8; // Almost certainly phishing
-
+  
   if (urlInfo.hasSuspiciousWords) score += 0.4 * sensMultiplier;
   if (urlInfo.domainLength > 35) score += 0.3 * sensMultiplier;
   if (urlInfo.numHyphens > 2) score += 0.3 * sensMultiplier;
@@ -602,10 +572,9 @@ async function analyzeUrl(url, checkAgeOpt = true) {
     sbPromise,
   ]);
   urlInfo.domainAge = domainAge;
-  urlInfo.isSafeBrowsingHit = isSafeBrowsingHit;
-
+  
   // 3. Analytics & Score Calculation
-  const result = analyzeUrlFeatures(urlInfo, isSafeBrowsingHit);
+  const result = analyzeUrlFeatures(urlInfo);
 
   // Attach Historical Counts
   urlInfo.phishingCount = domainPhishingCounts[urlInfo.domain] || 0;

@@ -239,9 +239,7 @@ document.addEventListener("DOMContentLoaded", function () {
         s.checkDomainAge !== false;
       document.getElementById("advanced-analysis").checked =
         s.advancedAnalysis !== false;
-      document.getElementById("safe-browsing-key").value =
-        s.safeBrowsingKey || "";
-      document.getElementById("custom-whitelist").value =
+            document.getElementById("custom-whitelist").value =
         s.customWhitelist || "";
       if (s.sensitivityLevel) {
         slider.value = s.sensitivityLevel;
