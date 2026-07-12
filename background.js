@@ -1,12 +1,50 @@
 const suspiciousKeywords = [
-  "login", "verify", "update", "account", "secure", "authenticate",
-  "banking", "password", "credential", "recover", "unlock", "wallet",
-  "confirm", "support", "service", "billing", "invoice", "payment",
-  "refund", "alert", "notice", "urgent", "required", "suspend",
-  "limit", "restrict", "validation", "auth", "signin",
-  "paypal", "apple", "microsoft", "google", "amazon", "facebook",
-  "chase", "wellsfargo", "bankofamerica",
-  "caixa", "acesso", "conta", "seguranca", "itau", "bradesco", "santander", "banco"
+  "login",
+  "verify",
+  "update",
+  "account",
+  "secure",
+  "authenticate",
+  "banking",
+  "password",
+  "credential",
+  "recover",
+  "unlock",
+  "wallet",
+  "confirm",
+  "support",
+  "service",
+  "billing",
+  "invoice",
+  "payment",
+  "refund",
+  "alert",
+  "notice",
+  "urgent",
+  "required",
+  "suspend",
+  "limit",
+  "restrict",
+  "validation",
+  "auth",
+  "signin",
+  "paypal",
+  "apple",
+  "microsoft",
+  "google",
+  "amazon",
+  "facebook",
+  "chase",
+  "wellsfargo",
+  "bankofamerica",
+  "caixa",
+  "acesso",
+  "conta",
+  "seguranca",
+  "itau",
+  "bradesco",
+  "santander",
+  "banco",
 ];
 
 const suspiciousPatterns = [
@@ -17,8 +55,20 @@ const suspiciousPatterns = [
 
 // Top brands for typosquatting checks
 const topBrands = [
-  "apple", "google", "microsoft", "amazon", "facebook", "paypal", "netflix", 
-  "bankofamerica", "chase", "wellsfargo", "twitter", "caixa", "itau", "bradesco"
+  "apple",
+  "google",
+  "microsoft",
+  "amazon",
+  "facebook",
+  "paypal",
+  "netflix",
+  "bankofamerica",
+  "chase",
+  "wellsfargo",
+  "twitter",
+  "caixa",
+  "itau",
+  "bradesco",
 ];
 
 // Built-in whitelist (Top trusted domains)
@@ -289,31 +339,43 @@ async function fetchPageSignals(url) {
     const timeoutId = setTimeout(() => controller.abort(), 4500); // Super fast timeout
     const response = await fetch(url, { signal: controller.signal });
     clearTimeout(timeoutId);
-    
-    if (!response.ok) return { passwordField: false, externalForm: false, hiddenIframe: false };
-    
+
+    if (!response.ok)
+      return { passwordField: false, externalForm: false, hiddenIframe: false };
+
     const html = await response.text();
-    const signals = { passwordField: false, externalForm: false, hiddenIframe: false };
-    
+    const signals = {
+      passwordField: false,
+      externalForm: false,
+      hiddenIframe: false,
+    };
+
     // Check for deeply nested credential harvesters
     if (/<input[^>]*type=["']password["']/i.test(html)) {
       signals.passwordField = true;
     }
-    
+
     // Look for data exfiltration endpoints in form actions
     const formMatch = html.match(/<form[^>]*action=["'](http[^"']+)["']/i);
     if (formMatch) {
       try {
         const targetUrl = new URL(formMatch[1]);
         const originUrl = new URL(url);
-        if (targetUrl.hostname !== originUrl.hostname && !targetUrl.hostname.includes(originUrl.hostname)) {
+        if (
+          targetUrl.hostname !== originUrl.hostname &&
+          !targetUrl.hostname.includes(originUrl.hostname)
+        ) {
           signals.externalForm = true;
         }
       } catch (e) {}
     }
-    
+
     // Look for invisible overlay IFrames loading malicious domains
-    if (/<iframe[^>]*(display:\s*none|visibility:\s*hidden|opacity:\s*0|width:\s*0|height:\s*0)[^>]*>/i.test(html)) {
+    if (
+      /<iframe[^>]*(display:\s*none|visibility:\s*hidden|opacity:\s*0|width:\s*0|height:\s*0)[^>]*>/i.test(
+        html,
+      )
+    ) {
       signals.hiddenIframe = true;
     }
     return signals;
@@ -394,33 +456,40 @@ function checkHomoglyphs(domain) {
 async function checkDomainAgeReal(domain) {
   try {
     const fetchPromise = fetch(`https://rdap.org/domain/${domain}`, {
-      headers: { 'Accept': 'application/rdap+json' }
+      headers: { Accept: "application/rdap+json" },
     });
-    
+
     // Explicit 3-second timeout race condition for aggressive adblockers (like Brave Shields)
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error("RDAP Timeout Exception")), 2500);
     });
-    
+
     const res = await Promise.race([fetchPromise, timeoutPromise]);
     if (!res.ok) throw new Error("RDAP query failed");
-    
+
     const data = await res.json();
-    const regEvent = data.events?.find(e => e.eventAction === 'registration');
+    const regEvent = data.events?.find((e) => e.eventAction === "registration");
     if (regEvent && regEvent.eventDate) {
       const regDate = new Date(regEvent.eventDate);
-      const ageInDays = Math.floor((Date.now() - regDate.getTime()) / (1000 * 60 * 60 * 24));
+      const ageInDays = Math.floor(
+        (Date.now() - regDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
       return {
         domain,
         ageInDays,
-        registrationDate: regDate.toISOString().split('T')[0],
-        isSuspicious: ageInDays < 30
+        registrationDate: regDate.toISOString().split("T")[0],
+        isSuspicious: ageInDays < 30,
       };
     }
   } catch (e) {
     console.warn("RDAP bypass caught:", e.message);
   }
-  return { domain, ageInDays: 'Unknown', registrationDate: 'Unknown', isSuspicious: false };
+  return {
+    domain,
+    ageInDays: "Unknown",
+    registrationDate: "Unknown",
+    isSuspicious: false,
+  };
 }
 
 // ── URL Analysis Pipeline ──
@@ -474,78 +543,153 @@ function fallbackPreprocess(url) {
   };
 }
 
-function analyzeUrlFeatures(urlInfo, domainAge, url, domSignals) { urlInfo.domSignals = domSignals || { passwordField: false, externalForm: false, hiddenIframe: false };
+function analyzeUrlFeatures(urlInfo, domainAge, url, domSignals) {
+  urlInfo.domSignals = domSignals || {
+    passwordField: false,
+    externalForm: false,
+    hiddenIframe: false,
+  };
   // ──────────────────────────────────────────────
   // ML: Logistic Regression Subsystem
   // ──────────────────────────────────────────────
   // 1. Feature Extraction (Normalization)
-  if (!urlInfo.domSignals) urlInfo.domSignals = { passwordField: false, externalForm: false, hiddenIframe: false };
+  if (!urlInfo.domSignals)
+    urlInfo.domSignals = {
+      passwordField: false,
+      externalForm: false,
+      hiddenIframe: false,
+    };
   const f_domPassword = urlInfo.domSignals.passwordField ? 1.0 : 0.0;
   const f_domExternal = urlInfo.domSignals.externalForm ? 1.0 : 0.0;
   const f_domHidden = urlInfo.domSignals.hiddenIframe ? 1.0 : 0.0;
-  const f_domRisk = (f_domPassword && (urlInfo.category === 'unknown' || spoofedBrand)) ? 1.0 : 0.0;
+  const f_domRisk =
+    f_domPassword && (urlInfo.category === "unknown" || spoofedBrand)
+      ? 1.0
+      : 0.0;
   const f_suspiciousWords = urlInfo.hasSuspiciousWords ? 1.0 : 0.0;
   const f_domainLen = Math.min(urlInfo.domainLength / 100.0, 1.0);
   const f_hyphens = Math.min(urlInfo.numHyphens / 5.0, 1.0);
   const f_ipAddress = urlInfo.hasIpAddress ? 1.0 : 0.0;
   const f_atSymbols = urlInfo.numAtSymbols > 0 ? 1.0 : 0.0;
   const f_encoding = urlInfo.hasExcessiveEncoding ? 1.0 : 0.0;
-  
+
   const rawEntropy = shannonEntropy(urlInfo.domain);
   const f_entropy = Math.min(rawEntropy / 5.0, 1.0);
 
   const spoofedBrand = checkTyposquatting(urlInfo.domain);
   if (spoofedBrand) {
     urlInfo.spoofedBrand = spoofedBrand;
-    if (urlInfo.category === 'unknown') {
-      urlInfo.category = determineDomainCategory('http://' + spoofedBrand + '.com');
+    if (urlInfo.category === "unknown") {
+      urlInfo.category = determineDomainCategory(
+        "http://" + spoofedBrand + ".com",
+      );
     }
   }
   const f_spoofedBrand = spoofedBrand ? 1.0 : 0.0;
-  
+
   const hasHomoglyphs = checkHomoglyphs(urlInfo.domain);
   if (hasHomoglyphs) urlInfo.hasHomoglyphs = true;
   const f_homoglyphs = hasHomoglyphs ? 1.0 : 0.0;
 
   const suspiciousTLDs = [
-  ".tk", ".ml", ".ga", ".cf", ".gq", ".xyz", ".top", ".zip", ".click", ".link",
-  ".hol.es", ".pe.hu", ".000webhostapp.com", ".servehttp.com", ".rf.gd", ".epizy.com"
-];
-  const f_suspiciousTLD = suspiciousTLDs.some((tld) => urlInfo.domain.endsWith(tld)) ? 1.0 : 0.0;
-  
-  const f_suspiciousAge = (urlInfo.domainAge && urlInfo.domainAge.isSuspicious) ? 1.0 : 0.0;
-  
-  const f_pathPlugin = (urlInfo.pathLength > 12 && (urlInfo.path.includes('/plugins/') || urlInfo.path.includes('/wp-'))) ? 1.0 : 0.0;
-  const f_deepPath = (urlInfo.path.split('/').length > 3) ? 1.0 : 0.0;
-  const f_pathLogin = (urlInfo.path.toLowerCase().includes('login') || urlInfo.path.toLowerCase().includes('chase')) ? 1.0 : 0.0;
+    ".tk",
+    ".ml",
+    ".ga",
+    ".cf",
+    ".gq",
+    ".xyz",
+    ".top",
+    ".zip",
+    ".click",
+    ".link",
+    ".hol.es",
+    ".pe.hu",
+    ".000webhostapp.com",
+    ".servehttp.com",
+    ".rf.gd",
+    ".epizy.com",
+  ];
+  const f_suspiciousTLD = suspiciousTLDs.some((tld) =>
+    urlInfo.domain.endsWith(tld),
+  )
+    ? 1.0
+    : 0.0;
+
+  const f_suspiciousAge =
+    urlInfo.domainAge && urlInfo.domainAge.isSuspicious ? 1.0 : 0.0;
+
+  const f_pathPlugin =
+    urlInfo.pathLength > 12 &&
+    (urlInfo.path.includes("/plugins/") || urlInfo.path.includes("/wp-"))
+      ? 1.0
+      : 0.0;
+  const f_deepPath = urlInfo.path.split("/").length > 3 ? 1.0 : 0.0;
+  const f_pathLogin =
+    urlInfo.path.toLowerCase().includes("login") ||
+    urlInfo.path.toLowerCase().includes("chase")
+      ? 1.0
+      : 0.0;
+  const f_urlLen = Math.min(url.length / 200.0, 1.0);
+  const f_dots = Math.min((url.match(/\./g) || []).length / 8.0, 1.0);
+  const f_subdomains = Math.min(
+    Math.max(urlInfo.domain.split(".").length - 2, 0) / 4.0,
+    1.0,
+  );
+  const f_digitsRatio =
+    urlInfo.domain.replace(/[^0-9]/g, "").length /
+    Math.max(urlInfo.domain.length, 1);
 
   // 2. Machine Learning Weights Matrix (Trained on 235,795 PhiUSIIL samples — 99.94% accuracy)
   const W_bias = 0.15298459;
-  
+
   // StandardScaler normalization (z = (x - mean) / scale)
   const featureValues = [
-    f_suspiciousWords, f_domainLen, f_hyphens, f_ipAddress,
-    f_atSymbols, f_encoding, f_entropy, f_spoofedBrand,
-    f_suspiciousTLD, f_pathPlugin, f_pathLogin, f_deepPath,
-    f_urlLen, f_dots, f_subdomains, f_digitsRatio
+    f_suspiciousWords,
+    f_domainLen,
+    f_hyphens,
+    f_ipAddress,
+    f_atSymbols,
+    f_encoding,
+    f_entropy,
+    f_spoofedBrand,
+    f_suspiciousTLD,
+    f_pathPlugin,
+    f_pathLogin,
+    f_deepPath,
+    f_urlLen,
+    f_dots,
+    f_subdomains,
+    f_digitsRatio,
   ];
-  
-  const W_means = [0.05778324, 0.21475386, 0.05578469, 0.00261880, 0.00644628, 0.00379037, 0.69437680, 0.01098412, 0.03978032, 0.00594266, 0.01447232, 0.01805064, 0.17230499, 0.28103265, 0.29097972, 0.03123352];
-  const W_scales = [0.23333311, 0.09166376, 0.14315118, 0.05110716, 0.08002951, 0.06144918, 0.08022631, 0.10422796, 0.19544269, 0.07685927, 0.11942725, 0.13313456, 0.11099315, 0.09182125, 0.14767317, 0.09231840];
-  const W_weights = [-0.15387013, 0.12460230, 1.07922863, -0.00884691, -0.00458090, -0.05164534, -0.05317200, -0.24369257, -0.25802831, 0.00287998, -0.10478654, -0.00539764, 0.91711795, 0.19170116, 0.67832673, -1.10150386];
-  
+
+  const W_means = [
+    0.05778324, 0.21475386, 0.05578469, 0.0026188, 0.00644628, 0.00379037,
+    0.6943768, 0.01098412, 0.03978032, 0.00594266, 0.01447232, 0.01805064,
+    0.17230499, 0.28103265, 0.29097972, 0.03123352,
+  ];
+  const W_scales = [
+    0.23333311, 0.09166376, 0.14315118, 0.05110716, 0.08002951, 0.06144918,
+    0.08022631, 0.10422796, 0.19544269, 0.07685927, 0.11942725, 0.13313456,
+    0.11099315, 0.09182125, 0.14767317, 0.0923184,
+  ];
+  const W_weights = [
+    -0.15387013, 0.1246023, 1.07922863, -0.00884691, -0.0045809, -0.05164534,
+    -0.053172, -0.24369257, -0.25802831, 0.00287998, -0.10478654, -0.00539764,
+    0.91711795, 0.19170116, 0.67832673, -1.10150386,
+  ];
+
   // Normalize and compute dot product
   let z = W_bias;
   for (let i = 0; i < featureValues.length; i++) {
     const normalized = (featureValues[i] - W_means[i]) / W_scales[i];
     z += normalized * W_weights[i];
   }
-  
+
   // Add DOM structural features (not normalized, manual weights from structural analysis)
-  z += f_domPassword * 3.5;   // Unexpected password forms
-  z += f_domExternal * 3.0;   // Data exfiltration to unknown domains
-  z += f_domHidden * 2.5;     // Obfuscated iframes
-  z += f_domRisk * 5.5;       // Critical: Unknown domain asking for passwords
+  z += f_domPassword * 3.5; // Unexpected password forms
+  z += f_domExternal * 3.0; // Data exfiltration to unknown domains
+  z += f_domHidden * 2.5; // Obfuscated iframes
+  z += f_domRisk * 5.5; // Critical: Unknown domain asking for passwords
 
   // 3. Dot Product (computed inline above during normalization)
 
@@ -553,29 +697,29 @@ function analyzeUrlFeatures(urlInfo, domainAge, url, domSignals) { urlInfo.domSi
   const probability = 1.0 / (1.0 + Math.exp(-z));
 
   // 5. Sensitivity Shift
-  const sensMultiplier = settings.sensitivityLevel / 3.0; 
+  const sensMultiplier = settings.sensitivityLevel / 3.0;
   const threshold = 0.5 / sensMultiplier;
-  
+
   const isPhishing = probability > threshold;
 
   return {
-    classification: isPhishing ? 'Phishing' : 'Legitimate',
+    classification: isPhishing ? "Phishing" : "Legitimate",
     confidence: Math.max(0.01, probability),
-    score: probability
+    score: probability,
   };
 }
 
 // ── Check Whitelist ──
 function isDomainWhitelisted(domain) {
   if (builtInWhitelist.has(domain)) return true;
-  
+
   // Natively intercept safe subdomains
   const parts = domain.split(".");
   if (parts.length > 2) {
     const root = parts.slice(-2).join(".");
     if (builtInWhitelist.has(root)) return true;
   }
-  
+
   if (!settings.customWhitelist) return false;
   const customList = settings.customWhitelist
     .split("\n")
@@ -605,7 +749,11 @@ async function analyzeUrl(url, checkAgeOpt = true) {
   urlInfo.domainAge = domainAge;
 
   const domSignals = await fetchPageSignals(url);
-  urlInfo.domSignals = domSignals || { passwordField: false, externalForm: false, hiddenIframe: false };
+  urlInfo.domSignals = domSignals || {
+    passwordField: false,
+    externalForm: false,
+    hiddenIframe: false,
+  };
 
   // 3. Analytics & Score Calculation
   const result = analyzeUrlFeatures(urlInfo);
@@ -734,15 +882,21 @@ chrome.webNavigation.onCompleted.addListener(async (details) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "analyzeUrl") {
-    analyzeUrl(message.url, message.checkDomainAge).then(result => {
-      if (result.classification === 'Phishing' && result.confidence > 0.5) {
-        if (result.urlInfo && result.urlInfo.domain) updateDomainPhishingCount(result.urlInfo.domain, result.urlInfo.category);
-      }
-      sendResponse(result);
-    }).catch(e => {
-      console.error("Fatal Analysis Error:", e);
-      sendResponse({ error: String(e) });
-    });
+    analyzeUrl(message.url, message.checkDomainAge)
+      .then((result) => {
+        if (result.classification === "Phishing" && result.confidence > 0.5) {
+          if (result.urlInfo && result.urlInfo.domain)
+            updateDomainPhishingCount(
+              result.urlInfo.domain,
+              result.urlInfo.category,
+            );
+        }
+        sendResponse(result);
+      })
+      .catch((e) => {
+        console.error("Fatal Analysis Error:", e);
+        sendResponse({ error: String(e) });
+      });
     return true;
   }
 
