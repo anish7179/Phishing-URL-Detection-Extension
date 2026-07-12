@@ -506,11 +506,12 @@ function analyzeUrlFeatures(urlInfo) {
   
   const f_suspiciousAge = (urlInfo.domainAge && urlInfo.domainAge.isSuspicious) ? 1.0 : 0.0;
   
-  const f_pathPlugin = (urlInfo.pathLength > 20 && urlInfo.path.includes('/plugins/')) ? 1.0 : 0.0;
+  const f_pathPlugin = (urlInfo.pathLength > 12 && (urlInfo.path.includes('/plugins/') || urlInfo.path.includes('/wp-'))) ? 1.0 : 0.0;
+  const f_deepPath = (urlInfo.path.split('/').length > 3) ? 1.0 : 0.0;
   const f_pathLogin = (urlInfo.path.toLowerCase().includes('login') || urlInfo.path.toLowerCase().includes('chase')) ? 1.0 : 0.0;
 
   // 2. Machine Learning Weights Matrix (Pre-calculated Expert Model)
-  const W_bias = -4.5;
+  const W_bias = -3.5;
   const W = [
     f_suspiciousWords * 2.8,   // keywords are dangerous
     f_domainLen       * 1.0,   // excessively long domains
@@ -525,6 +526,8 @@ function analyzeUrlFeatures(urlInfo) {
     f_suspiciousAge   * 2.2,   // extremely young domain
     f_pathPlugin      * 3.5,   // Compromised wordpress sites
     f_pathLogin       * 2.0    // Generic path disguises
+  ,
+    f_deepPath        * 1.5    // Obfuscation via depth
   ];
 
   // 3. Dot Product
