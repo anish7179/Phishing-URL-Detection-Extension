@@ -1,7 +1,3 @@
-const offlineBlocklist = new Set([
-  "taeamigo.com",
-  "avedeoiro.com"
-]);
 const suspiciousKeywords = [
   "login",
   "secure",
@@ -321,6 +317,45 @@ function extractDomain(url) {
   }
 }
 
+async function fetchPageSignals(url) {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1200); // Super fast timeout
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) return { passwordField: false, externalForm: false, hiddenIframe: false };
+    
+    const html = await response.text();
+    const signals = { passwordField: false, externalForm: false, hiddenIframe: false };
+    
+    // Check for deeply nested credential harvesters
+    if (/<input[^>]*type=["']password["']/i.test(html)) {
+      signals.passwordField = true;
+    }
+    
+    // Look for data exfiltration endpoints in form actions
+    const formMatch = html.match(/<form[^>]*action=["'](http[^"']+)["']/i);
+    if (formMatch) {
+      try {
+        const targetUrl = new URL(formMatch[1]);
+        const originUrl = new URL(url);
+        if (targetUrl.hostname !== originUrl.hostname && !targetUrl.hostname.includes(originUrl.hostname)) {
+          signals.externalForm = true;
+        }
+      } catch (e) {}
+    }
+    
+    // Look for invisible overlay IFrames loading malicious domains
+    if (/<iframe[^>]*(display:\s*none|visibility:\s*hidden|opacity:\s*0|width:\s*0|height:\s*0)[^>]*>/i.test(html)) {
+      signals.hiddenIframe = true;
+    }
+    return signals;
+  } catch (e) {
+    return { passwordField: false, externalForm: false, hiddenIframe: false };
+  }
+}
+
 function determineDomainCategory(url) {
   const domain = extractDomain(url).toLowerCase();
   const urlLower = url.toLowerCase();
@@ -478,6 +513,10 @@ function analyzeUrlFeatures(urlInfo) {
   // ML: Logistic Regression Subsystem
   // ──────────────────────────────────────────────
   // 1. Feature Extraction (Normalization)
+  const f_domPassword = urlInfo.domSignals.passwordField ? 1.0 : 0.0;
+  const f_domExternal = urlInfo.domSignals.externalForm ? 1.0 : 0.0;
+  const f_domHidden = urlInfo.domSignals.hiddenIframe ? 1.0 : 0.0;
+  const f_domRisk = (f_domPassword && (urlInfo.category === 'unknown' || spoofedBrand)) ? 1.0 : 0.0;
   const f_suspiciousWords = urlInfo.hasSuspiciousWords ? 1.0 : 0.0;
   const f_domainLen = Math.min(urlInfo.domainLength / 100.0, 1.0);
   const f_hyphens = Math.min(urlInfo.numHyphens / 5.0, 1.0);
@@ -511,23 +550,11 @@ function analyzeUrlFeatures(urlInfo) {
   const f_pathLogin = (urlInfo.path.toLowerCase().includes('login') || urlInfo.path.toLowerCase().includes('chase')) ? 1.0 : 0.0;
 
   // 2. Machine Learning Weights Matrix (Pre-calculated Expert Model)
-  const W_bias = -3.5;
-  const W = [
-    f_suspiciousWords * 2.8,   // keywords are dangerous
-    f_domainLen       * 1.0,   // excessively long domains
-    f_hyphens         * 1.2,   // multiple hyphens
-    f_ipAddress       * 4.5,   // bare IP address
-    f_atSymbols       * 3.5,   // credential stuffing @
-    f_encoding        * 1.8,   // extreme % formatting
-    f_entropy         * 3.0,   // DGA / RNG detection
-    f_spoofedBrand    * 5.5,   // Typosquatting
-    f_homoglyphs      * 5.5,   // Punycode/Cyrillic spoofing
-    f_suspiciousTLD   * 1.6,   // low-quality TLDs
-    f_suspiciousAge   * 2.2,   // extremely young domain
-    f_pathPlugin      * 3.5,   // Compromised wordpress sites
-    f_pathLogin       * 2.0    // Generic path disguises
-  ,
-    f_deepPath        * 1.5    // Obfuscation via depth
+  const W_bias = -4.0;,
+    f_domPassword     * 3.5,   // Unexpected password forms
+    f_domExternal     * 3.0,   // Data exfiltration to unknown domains
+    f_domHidden       * 2.5,   // Obfuscated iframes
+    f_domRisk         * 5.5    // Critical threat: Unknown/Spoofed domain asking for passwords!
   ];
 
   // 3. Dot Product
