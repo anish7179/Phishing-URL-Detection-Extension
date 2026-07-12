@@ -203,7 +203,9 @@
         margin-bottom: 10px;
       }
 
-      .input-group input {
+      .input-group input,
+      .set-text-input,
+      .set-textarea {
         width: 100%;
         padding: 10px 12px;
         background: var(--input-bg);
@@ -218,10 +220,22 @@
           box-shadow 0.15s;
       }
 
-      .input-group input::placeholder {
+      .set-textarea {
+        resize: vertical;
+        min-height: 50px;
+        max-height: 150px;
+        font-size: 12px;
+        margin-top: 6px;
+      }
+
+      .input-group input::placeholder,
+      .set-text-input::placeholder,
+      .set-textarea::placeholder {
         color: var(--text-3);
       }
-      .input-group input:focus {
+      .input-group input:focus,
+      .set-text-input:focus,
+      .set-textarea:focus {
         border-color: var(--accent);
         box-shadow: 0 0 0 2px var(--accent-bg);
       }
@@ -919,6 +933,35 @@
           <p class="sensitivity-desc">
             Controls how aggressively URLs are flagged. Higher levels catch more
             threats but may produce false positives.
+          </p>
+        </div>
+      </div>
+
+      <div class="set-group">
+        <h3>Google Safe Browsing</h3>
+        <div class="card">
+          <input
+            type="password"
+            id="safe-browsing-key"
+            class="set-text-input"
+            placeholder="Enter optional API Key..."
+          />
+          <p class="sensitivity-desc">
+            Leave empty to run ML heuristics without Safe Browsing lookup.
+          </p>
+        </div>
+      </div>
+
+      <div class="set-group">
+        <h3>Trusted Domains</h3>
+        <div class="card">
+          <textarea
+            id="custom-whitelist"
+            class="set-textarea"
+            placeholder="google.com&#10;github.com"
+          ></textarea>
+          <p class="sensitivity-desc">
+            One domain per line. These bypass all threat checks.
           </p>
         </div>
       </div>
