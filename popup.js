@@ -1,5 +1,24 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // ── Tab switching ──
+  // ── Theme Toggle ──
+  const themeBtn = document.getElementById("theme-toggle");
+  const html = document.documentElement;
+
+  // Load saved theme
+  chrome.storage.local.get("theme", function (data) {
+    const saved = data.theme || "light";
+    html.setAttribute("data-theme", saved);
+    themeBtn.textContent = saved === "dark" ? "☀️" : "🌙";
+  });
+
+  themeBtn.addEventListener("click", function () {
+    const current = html.getAttribute("data-theme");
+    const next = current === "dark" ? "light" : "dark";
+    html.setAttribute("data-theme", next);
+    themeBtn.textContent = next === "dark" ? "☀️" : "🌙";
+    chrome.storage.local.set({ theme: next });
+  });
+
+  // ── Tab Switching ──
   const tabButtons = document.querySelectorAll(".tab-btn");
   const tabContents = document.querySelectorAll(".tab-content");
 
@@ -17,14 +36,14 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // ── Sensitivity display ──
+  // ── Sensitivity Display ──
   const sensitivitySlider = document.getElementById("sensitivity-level");
   const sensitivityDisplay = document.getElementById("sensitivity-display");
   sensitivitySlider.addEventListener("input", function () {
     sensitivityDisplay.textContent = this.value;
   });
 
-  // ── Analyze URL button ──
+  // ── Analyze URL ──
   document.getElementById("analyze-btn").addEventListener("click", function () {
     const url = document.getElementById("url-input").value.trim();
     if (url) {
@@ -33,7 +52,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Enter key trigger
   document
     .getElementById("url-input")
     .addEventListener("keydown", function (e) {
@@ -52,15 +70,14 @@ document.addEventListener("DOMContentLoaded", function () {
     .addEventListener("click", function () {
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         if (tabs && tabs[0] && tabs[0].url) {
-          const url = tabs[0].url;
-          document.getElementById("url-input").value = url;
+          document.getElementById("url-input").value = tabs[0].url;
           showLoading(true);
-          analyzeUrl(url);
+          analyzeUrl(tabs[0].url);
         }
       });
     });
 
-  // ── Settings ──
+  // ── Settings Handlers ──
   document
     .querySelectorAll('#settings input[type="checkbox"]')
     .forEach((cb) => {
@@ -72,39 +89,28 @@ document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("clear-history")
     .addEventListener("click", function () {
-      chrome.runtime.sendMessage({ action: "clearDetections" }, function () {
-        loadDetections();
-      });
+      chrome.runtime.sendMessage({ action: "clearDetections" }, () =>
+        loadDetections(),
+      );
     });
 
   // ── Refresh Stats ──
   document
     .getElementById("refresh-stats")
-    .addEventListener("click", function () {
-      loadStatistics();
-    });
+    .addEventListener("click", () => loadStatistics());
 
-  // ────────────────────────────────
-  //  Loading / Scanner
-  // ────────────────────────────────
+  // ───────────────────────────
+  //  Helpers
+  // ───────────────────────────
+
   function showLoading(show) {
-    const scanner = document.getElementById("loading");
-    const resultCard = document.getElementById("result");
-    if (show) {
-      scanner.classList.add("active");
-      resultCard.classList.remove("active");
-    } else {
-      scanner.classList.remove("active");
-    }
+    document.getElementById("loading").classList.toggle("active", show);
+    if (show) document.getElementById("result").classList.remove("active");
   }
 
-  // ────────────────────────────────
-  //  Analyze URL
-  // ────────────────────────────────
   function analyzeUrl(url) {
-    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    if (!url.startsWith("http://") && !url.startsWith("https://"))
       url = "http://" + url;
-    }
     chrome.runtime.sendMessage(
       { action: "analyzeUrl", url: url, checkDomainAge: true },
       function (result) {
@@ -114,202 +120,153 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   }
 
-  // ────────────────────────────────
+  const catIcons = {
+    financial: "🏦",
+    ecommerce: "🛒",
+    social: "👥",
+    gaming: "🎮",
+    education: "🎓",
+    streaming: "🎬",
+    technology: "💻",
+    government: "🏛️",
+    healthcare: "🏥",
+    news: "📰",
+    unknown: "🌐",
+  };
+
+  // ───────────────────────────
   //  Display Result
-  // ────────────────────────────────
+  // ───────────────────────────
   function displayResult(result) {
-    const resultCard = document.getElementById("result");
-    const isPhishing = result.classification === "Phishing";
-    const confidence = (result.confidence * 100).toFixed(1);
-    const gaugeColor = isPhishing ? "var(--danger)" : "var(--success)";
-    const gaugeGlow = isPhishing ? "var(--danger-glow)" : "var(--success-glow)";
-    const circumference = 2 * Math.PI * 30; // r=30 → ~188.5
-
-    // Build risk factors from explanation
-    const riskFactors = [];
-    if (result.urlInfo) {
-      if (result.urlInfo.hasSuspiciousWords)
-        riskFactors.push("Contains suspicious keywords");
-      if (result.urlInfo.hasIpAddress)
-        riskFactors.push("Uses IP address instead of domain");
-      if (result.urlInfo.domainLength > 30)
-        riskFactors.push("Unusually long domain name");
-      if (result.urlInfo.numDots > 3)
-        riskFactors.push(
-          `Excessive dots in domain (${result.urlInfo.numDots})`,
-        );
-      if (result.urlInfo.numHyphens > 2)
-        riskFactors.push(`Multiple hyphens (${result.urlInfo.numHyphens})`);
-      if (result.urlInfo.numAtSymbols > 0)
-        riskFactors.push("Contains @ symbol (highly suspicious)");
-      if (result.urlInfo.subdomainLevels > 2)
-        riskFactors.push(
-          `Deep subdomain nesting (${result.urlInfo.subdomainLevels} levels)`,
-        );
-    }
-    if (result.domainAge && result.domainAge.isSuspicious) {
-      riskFactors.push(
-        `Recently registered domain (${result.domainAge.ageInDays} days old)`,
-      );
-    }
-    if (result.phishingCount && result.phishingCount > 1) {
-      riskFactors.push(
-        `${result.phishingCount} phishing attempts from this domain`,
-      );
-    }
-
-    // Category badge
+    const el = document.getElementById("result");
+    const bad = result.classification === "Phishing";
+    const conf = (result.confidence * 100).toFixed(1);
     const category =
       result.category ||
       (result.urlInfo && result.urlInfo.category) ||
       "unknown";
-    const categoryIcons = {
-      financial: "🏦",
-      ecommerce: "🛒",
-      social: "👥",
-      gaming: "🎮",
-      education: "🎓",
-      streaming: "🎬",
-      technology: "💻",
-      government: "🏛️",
-      healthcare: "🏥",
-      news: "📰",
-      unknown: "🌐",
-    };
+    const domain = result.urlInfo ? result.urlInfo.domain : result.url;
 
-    let html = `
-      <div class="glass-card">
-        <div class="result-header">
-          <div class="gauge-wrap">
-            <svg class="gauge-ring" viewBox="0 0 72 72">
-              <circle class="gauge-bg" cx="36" cy="36" r="30"/>
-              <circle class="gauge-fill" cx="36" cy="36" r="30"
-                style="stroke: ${gaugeColor}; filter: drop-shadow(0 0 6px ${gaugeGlow});"/>
-            </svg>
-            <div class="gauge-text">
-              <span class="gauge-value" style="color: ${gaugeColor};">${confidence}%</span>
-              <span class="gauge-label">Confidence</span>
-            </div>
-          </div>
-          <div class="result-info">
-            <h2>${isPhishing ? "⚠️ Threat Detected" : "✅ URL is Safe"}</h2>
-            <div class="result-domain">${result.urlInfo ? result.urlInfo.domain : result.url}</div>
-            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
-              <span class="result-badge ${isPhishing ? "badge-danger" : "badge-safe"}">
-                ${isPhishing ? "🚫 Phishing" : "🔒 Legitimate"}
-              </span>
-              <span class="result-badge badge-category">
-                ${categoryIcons[category] || "🌐"} ${category.charAt(0).toUpperCase() + category.slice(1)}
-              </span>
-            </div>
-          </div>
-        </div>`;
+    // Risk factors
+    const risks = [];
+    if (result.urlInfo) {
+      if (result.urlInfo.hasSuspiciousWords)
+        risks.push("Contains suspicious keywords");
+      if (result.urlInfo.hasIpAddress)
+        risks.push("Uses IP address instead of domain");
+      if (result.urlInfo.domainLength > 30)
+        risks.push("Unusually long domain name");
+      if (result.urlInfo.numDots > 3) risks.push("Excessive dots in domain");
+      if (result.urlInfo.numHyphens > 2)
+        risks.push("Multiple hyphens in domain");
+      if (result.urlInfo.numAtSymbols > 0) risks.push("Contains @ symbol");
+      if (result.urlInfo.subdomainLevels > 2)
+        risks.push("Deep subdomain nesting");
+    }
+    if (result.domainAge && result.domainAge.isSuspicious)
+      risks.push(
+        "Recently registered domain (" + result.domainAge.ageInDays + " days)",
+      );
+    if (result.phishingCount > 1)
+      risks.push(
+        result.phishingCount + " prior phishing attempts from this domain",
+      );
+
+    let html = `<div class="card">
+      <div class="result-status">
+        <div class="result-icon ${bad ? "danger" : "safe"}">${bad ? "⚠️" : "✓"}</div>
+        <div>
+          <div class="result-title">${bad ? "Threat Detected" : "URL is Safe"}</div>
+          <div class="result-domain">${domain}</div>
+        </div>
+      </div>
+
+      <div class="confidence-row">
+        <span class="confidence-label">Confidence</span>
+        <span class="confidence-value" style="color: ${bad ? "var(--danger)" : "var(--success)"};">${conf}%</span>
+      </div>
+      <div class="confidence-track">
+        <div class="confidence-fill" style="width: 0%; background: ${bad ? "var(--danger)" : "var(--success)"};"></div>
+      </div>
+
+      <div class="badges-row">
+        <span class="badge ${bad ? "badge-danger" : "badge-safe"}">${bad ? "Phishing" : "Legitimate"}</span>
+        <span class="badge badge-info">${catIcons[category] || "🌐"} ${category}</span>
+      </div>`;
 
     // Domain age
     if (result.domainAge) {
-      html += `
-        <div class="domain-age-card">
-          <span>Domain Age: <strong>${result.domainAge.ageInDays} days</strong></span>
-          <span>Registered: <strong>${result.domainAge.registrationDate}</strong></span>
-        </div>`;
+      html += `<div class="domain-age-row">
+        <span>Domain age: <strong>${result.domainAge.ageInDays} days</strong></span>
+        <span>Registered: <strong>${result.domainAge.registrationDate}</strong></span>
+      </div>`;
     }
 
-    // Risk factors
-    if (riskFactors.length > 0) {
-      html += `<div class="risk-section">
-        <div class="risk-title">Risk Factors</div>
-        <div class="risk-list">`;
-      riskFactors.forEach((factor) => {
-        html += `<div class="risk-item"><span class="risk-dot"></span>${factor}</div>`;
+    // Factors
+    if (risks.length > 0) {
+      html += `<div class="detail-section"><div class="detail-label">Risk Factors</div>`;
+      risks.forEach((r) => {
+        html += `<div class="detail-item"><span class="detail-dot dot-danger"></span>${r}</div>`;
       });
-      html += `</div></div>`;
-    } else if (!isPhishing) {
-      html += `<div class="risk-section">
-        <div class="risk-title">Analysis</div>
-        <div class="risk-list">
-          <div class="risk-item safe-item"><span class="risk-dot"></span>No suspicious patterns detected</div>
-          <div class="risk-item safe-item"><span class="risk-dot"></span>Domain structure looks normal</div>
-        </div>
+      html += `</div>`;
+    } else if (!bad) {
+      html += `<div class="detail-section"><div class="detail-label">Analysis</div>
+        <div class="detail-item"><span class="detail-dot dot-safe"></span>No suspicious patterns found</div>
+        <div class="detail-item"><span class="detail-dot dot-safe"></span>Domain structure is normal</div>
       </div>`;
     }
 
     html += `</div>`;
+    el.innerHTML = html;
+    el.classList.add("active");
 
-    resultCard.innerHTML = html;
-    resultCard.classList.add("active");
-
-    // Animate gauge
+    // Animate confidence bar
     requestAnimationFrame(() => {
-      const gaugeFill = resultCard.querySelector(".gauge-fill");
-      if (gaugeFill) {
-        const offset = circumference - circumference * result.confidence;
-        gaugeFill.style.strokeDashoffset = offset;
-      }
+      const fill = el.querySelector(".confidence-fill");
+      if (fill) fill.style.width = conf + "%";
     });
   }
 
-  // ────────────────────────────────
-  //  Load Detection History
-  // ────────────────────────────────
+  // ───────────────────────────
+  //  History
+  // ───────────────────────────
   function loadDetections() {
     chrome.runtime.sendMessage(
       { action: "getDetections" },
       function (detections) {
         const list = document.getElementById("detections-list");
         if (!detections || detections.length === 0) {
-          list.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">🛡️</div>
-            <p>No threats detected yet</p>
-          </div>`;
+          list.innerHTML =
+            '<div class="empty-state"><p>No detections yet</p></div>';
           return;
         }
 
         let html = "";
-        detections.slice(0, 50).forEach((det) => {
-          const isPhishing = det.classification === "Phishing";
-          const time = new Date(det.timestamp).toLocaleString();
-          const conf = det.confidence
-            ? (det.confidence * 100).toFixed(1) + "%"
-            : "N/A";
-          const category = det.category || "unknown";
-          const categoryIcons = {
-            financial: "🏦",
-            ecommerce: "🛒",
-            social: "👥",
-            gaming: "🎮",
-            education: "🎓",
-            streaming: "🎬",
-            technology: "💻",
-            government: "🏛️",
-            healthcare: "🏥",
-            news: "📰",
-            unknown: "🌐",
-          };
+        detections.slice(0, 50).forEach((d) => {
+          const bad = d.classification === "Phishing";
+          const conf = d.confidence
+            ? (d.confidence * 100).toFixed(1) + "%"
+            : "";
+          const cat = d.category || "unknown";
+          const time = new Date(d.timestamp).toLocaleString();
 
-          html += `
-          <div class="detection-card">
-            <div class="detection-url">${det.url}</div>
-            <div class="detection-meta">
-              <span class="result-badge ${isPhishing ? "badge-danger" : "badge-safe"}">
-                ${isPhishing ? "🚫 Phishing" : "🔒 Safe"} · ${conf}
-              </span>
-              <span class="result-badge badge-category">
-                ${categoryIcons[category] || "🌐"} ${category}
-              </span>
-              <span class="detection-time">${time}</span>
-            </div>
-          </div>`;
+          html += `<div class="detection-item">
+          <div class="det-url">${d.url}</div>
+          <div class="det-meta">
+            <span class="badge ${bad ? "badge-danger" : "badge-safe"}">${bad ? "Phishing" : "Safe"} ${conf}</span>
+            <span class="badge badge-info">${catIcons[cat] || "🌐"} ${cat}</span>
+            <span class="det-time">${time}</span>
+          </div>
+        </div>`;
         });
-
         list.innerHTML = html;
       },
     );
   }
 
-  // ────────────────────────────────
-  //  Load Settings
-  // ────────────────────────────────
+  // ───────────────────────────
+  //  Settings
+  // ───────────────────────────
   function loadSettings() {
     chrome.storage.local.get("settings", function (data) {
       if (data.settings) {
@@ -330,11 +287,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ────────────────────────────────
-  //  Save Settings
-  // ────────────────────────────────
   function saveSettings() {
-    const newSettings = {
+    const s = {
       realTimeProtection: document.getElementById("real-time-protection")
         .checked,
       showWarnings: document.getElementById("show-warnings").checked,
@@ -342,142 +296,113 @@ document.addEventListener("DOMContentLoaded", function () {
       advancedAnalysis: document.getElementById("advanced-analysis").checked,
       sensitivityLevel: parseInt(sensitivitySlider.value),
     };
-    chrome.runtime.sendMessage({
-      action: "updateSettings",
-      settings: newSettings,
-    });
+    chrome.runtime.sendMessage({ action: "updateSettings", settings: s });
   }
 
-  // ────────────────────────────────
-  //  Load Statistics
-  // ────────────────────────────────
+  // ───────────────────────────
+  //  Statistics
+  // ───────────────────────────
   function loadStatistics() {
     chrome.runtime.sendMessage(
       { action: "getAllPhishingStatistics" },
       function (stats) {
         if (!stats) return;
 
-        // Total count with counter animation
+        // Total
         const totalEl = document.getElementById("total-count");
         animateCounter(totalEl, stats.totalPhishingAttempts || 0);
 
-        // Category bar chart
-        const catContainer = document.getElementById("category-statistics");
+        // Category bars
+        const catEl = document.getElementById("category-statistics");
         const counts = stats.categoryCounts || {};
-        const maxCount = Math.max(...Object.values(counts), 1);
-
-        const categoryIcons = {
-          financial: "🏦",
-          ecommerce: "🛒",
-          social: "👥",
-          gaming: "🎮",
-          education: "🎓",
-          streaming: "🎬",
-          technology: "💻",
-          government: "🏛️",
-          healthcare: "🏥",
-          news: "📰",
-          unknown: "🌐",
-        };
-
-        // Sort by count descending
+        const maxC = Math.max(...Object.values(counts), 1);
         const sorted = Object.entries(counts)
           .filter(([k]) => k !== "unknown")
           .sort((a, b) => b[1] - a[1]);
 
         let catHtml = "";
         sorted.forEach(([cat, count]) => {
-          const pct = (count / maxCount) * 100;
-          const icon = categoryIcons[cat] || "🌐";
-          catHtml += `
-          <div class="bar-row">
-            <span class="bar-label">${icon} ${cat}</span>
-            <div class="bar-track">
-              <div class="bar-fill" style="width: 0%;" data-width="${pct}%"></div>
-            </div>
-            <span class="bar-count">${count}</span>
-          </div>`;
+          const pct = (count / maxC) * 100;
+          const icon = catIcons[cat] || "🌐";
+          catHtml += `<div class="bar-row">
+          <span class="bar-name">${icon} ${cat}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:0%;" data-w="${pct}%"></div></div>
+          <span class="bar-val">${count}</span>
+        </div>`;
         });
-        catContainer.innerHTML = catHtml;
+        catEl.innerHTML = catHtml;
+        requestAnimationFrame(() =>
+          catEl
+            .querySelectorAll(".bar-fill")
+            .forEach((b) => (b.style.width = b.dataset.w)),
+        );
 
-        // Animate bars
-        requestAnimationFrame(() => {
-          catContainer.querySelectorAll(".bar-fill").forEach((bar) => {
-            bar.style.width = bar.dataset.width;
-          });
-        });
-
-        // Domain statistics
-        const domContainer = document.getElementById("domain-statistics");
-        const domainCounts = stats.domainCounts || {};
-        const domSorted = Object.entries(domainCounts)
+        // Domain bars
+        const domEl = document.getElementById("domain-statistics");
+        const domCounts = stats.domainCounts || {};
+        const domSorted = Object.entries(domCounts)
           .sort((a, b) => b[1] - a[1])
-          .slice(0, 8);
-
+          .slice(0, 6);
         const domMax = domSorted.length > 0 ? domSorted[0][1] : 1;
 
         let domHtml = "";
         if (domSorted.length === 0) {
           domHtml =
-            '<div class="empty-state"><p style="font-size:12px;">No domain data yet</p></div>';
+            '<div class="empty-state"><p style="font-size:12px;">No data yet</p></div>';
         } else {
-          domSorted.forEach(([domain, count]) => {
+          domSorted.forEach(([dom, count]) => {
             const pct = (count / domMax) * 100;
-            const shortDomain =
-              domain.length > 12 ? domain.substring(0, 12) + "…" : domain;
-            domHtml += `
-            <div class="bar-row">
-              <span class="bar-label" title="${domain}">${shortDomain}</span>
-              <div class="bar-track">
-                <div class="bar-fill" style="width: 0%; background: linear-gradient(90deg, var(--danger), #cc3344);" data-width="${pct}%"></div>
-              </div>
-              <span class="bar-count">${count}</span>
-            </div>`;
+            const short = dom.length > 14 ? dom.substring(0, 14) + "…" : dom;
+            domHtml += `<div class="bar-row">
+            <span class="bar-name" title="${dom}">${short}</span>
+            <div class="bar-track"><div class="bar-fill danger" style="width:0%;" data-w="${pct}%"></div></div>
+            <span class="bar-val">${count}</span>
+          </div>`;
           });
         }
-        domContainer.innerHTML = domHtml;
-
-        // Animate domain bars
-        requestAnimationFrame(() => {
-          domContainer.querySelectorAll(".bar-fill").forEach((bar) => {
-            bar.style.width = bar.dataset.width;
-          });
-        });
+        domEl.innerHTML = domHtml;
+        requestAnimationFrame(() =>
+          domEl
+            .querySelectorAll(".bar-fill")
+            .forEach((b) => (b.style.width = b.dataset.w)),
+        );
 
         // Most targeted
-        const mtSection = document.getElementById("most-targeted-section");
+        const mtBox = document.getElementById("most-targeted-section");
         const mtLabel = document.getElementById("most-targeted-category");
         if (stats.mostTargetedCategory && stats.mostTargetedCategory[1] > 0) {
-          mtSection.style.display = "block";
-          const icon = categoryIcons[stats.mostTargetedCategory[0]] || "🌐";
-          mtLabel.textContent = `${icon} ${stats.mostTargetedCategory[0]} (${stats.mostTargetedCategory[1]} attempts)`;
+          mtBox.style.display = "block";
+          const icon = catIcons[stats.mostTargetedCategory[0]] || "🌐";
+          mtLabel.textContent =
+            icon +
+            " " +
+            stats.mostTargetedCategory[0] +
+            " (" +
+            stats.mostTargetedCategory[1] +
+            ")";
         } else {
-          mtSection.style.display = "none";
+          mtBox.style.display = "none";
         }
       },
     );
   }
 
-  // ── Counter Animation ──
   function animateCounter(el, target) {
-    const duration = 800;
+    const duration = 600;
     const start = parseInt(el.textContent) || 0;
-    const startTime = performance.now();
-
-    function update(time) {
-      const elapsed = time - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      el.textContent = Math.round(start + (target - start) * eased);
-      if (progress < 1) requestAnimationFrame(update);
+    const t0 = performance.now();
+    function step(t) {
+      const p = Math.min((t - t0) / duration, 1);
+      el.textContent = Math.round(
+        start + (target - start) * (1 - Math.pow(1 - p, 3)),
+      );
+      if (p < 1) requestAnimationFrame(step);
     }
-    requestAnimationFrame(update);
+    requestAnimationFrame(step);
   }
 
-  // ── Initial loads ──
+  // ── Init ──
   loadSettings();
-
-  // Pre-fill current tab URL
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     if (tabs && tabs[0] && tabs[0].url && tabs[0].url.startsWith("http")) {
       document.getElementById("url-input").value = tabs[0].url;

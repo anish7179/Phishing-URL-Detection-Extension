@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,34 +7,58 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <style>
+      /* ── Theme Variables ── */
       :root {
-        --bg-primary: #0a0a14;
-        --bg-secondary: #12121f;
-        --bg-card: rgba(255, 255, 255, 0.04);
-        --bg-card-hover: rgba(255, 255, 255, 0.07);
-        --glass-border: rgba(255, 255, 255, 0.08);
-        --glass-glow: rgba(0, 212, 255, 0.06);
-        --accent: #00d4ff;
-        --accent-dim: rgba(0, 212, 255, 0.15);
-        --accent-glow: rgba(0, 212, 255, 0.3);
-        --danger: #ff4757;
-        --danger-dim: rgba(255, 71, 87, 0.12);
-        --danger-glow: rgba(255, 71, 87, 0.3);
-        --success: #2ed573;
-        --success-dim: rgba(46, 213, 115, 0.12);
-        --success-glow: rgba(46, 213, 115, 0.3);
-        --warning: #ffa502;
-        --warning-dim: rgba(255, 165, 2, 0.12);
-        --text-primary: #e8e8f0;
-        --text-secondary: #8b8ba3;
-        --text-muted: #5a5a72;
-        --radius: 12px;
-        --radius-sm: 8px;
-        --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --font:
+          "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      [data-theme="light"] {
+        --bg-body: #f5f5f7;
+        --bg-card: #ffffff;
+        --bg-input: #f0f0f3;
+        --bg-hover: #f0f0f3;
+        --border: #e2e2e7;
+        --border-focus: #0071e3;
+        --text-1: #1d1d1f;
+        --text-2: #6e6e73;
+        --text-3: #aeaeb2;
+        --accent: #0071e3;
+        --accent-soft: rgba(0, 113, 227, 0.08);
+        --danger: #e53935;
+        --danger-soft: rgba(229, 57, 53, 0.08);
+        --success: #2e7d32;
+        --success-soft: rgba(46, 125, 50, 0.08);
+        --warning: #f57c00;
+        --warning-soft: rgba(245, 124, 0, 0.08);
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+
+      [data-theme="dark"] {
+        --bg-body: #1c1c1e;
+        --bg-card: #2c2c2e;
+        --bg-input: #3a3a3c;
+        --bg-hover: #3a3a3c;
+        --border: #3a3a3c;
+        --border-focus: #64b5f6;
+        --text-1: #f5f5f7;
+        --text-2: #a1a1a6;
+        --text-3: #636366;
+        --accent: #64b5f6;
+        --accent-soft: rgba(100, 181, 246, 0.12);
+        --danger: #ef5350;
+        --danger-soft: rgba(239, 83, 80, 0.12);
+        --success: #66bb6a;
+        --success-soft: rgba(102, 187, 106, 0.12);
+        --warning: #ffa726;
+        --warning-soft: rgba(255, 167, 38, 0.12);
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.3);
       }
 
       * {
@@ -44,19 +68,17 @@
       }
 
       body {
-        width: 400px;
-        min-height: 500px;
-        background: var(--bg-primary);
-        color: var(--text-primary);
-        font-family:
-          "Inter",
-          -apple-system,
-          BlinkMacSystemFont,
-          sans-serif;
-        overflow-x: hidden;
+        width: 380px;
+        font-family: var(--font);
+        background: var(--bg-body);
+        color: var(--text-1);
+        font-size: 13px;
+        line-height: 1.5;
+        transition:
+          background 0.25s,
+          color 0.25s;
       }
 
-      /* ── Scrollbar ── */
       ::-webkit-scrollbar {
         width: 4px;
       }
@@ -64,305 +86,232 @@
         background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: var(--text-muted);
+        background: var(--text-3);
         border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: var(--text-secondary);
       }
 
       /* ── Header ── */
       .header {
-        padding: 18px 20px;
         display: flex;
         align-items: center;
-        gap: 14px;
-        background: linear-gradient(
-          135deg,
-          rgba(0, 212, 255, 0.08),
-          rgba(0, 100, 255, 0.04)
-        );
-        border-bottom: 1px solid var(--glass-border);
-        position: relative;
-        overflow: hidden;
+        justify-content: space-between;
+        padding: 14px 16px;
+        background: var(--bg-card);
+        border-bottom: 1px solid var(--border);
       }
 
-      .header::before {
-        content: "";
-        position: absolute;
-        top: -50%;
-        right: -30%;
-        width: 200px;
-        height: 200px;
-        background: radial-gradient(circle, var(--accent-dim), transparent 70%);
-        pointer-events: none;
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
       }
 
-      .shield-icon {
-        width: 36px;
-        height: 36px;
-        position: relative;
-        flex-shrink: 0;
+      .header-left img {
+        width: 28px;
+        height: 28px;
       }
 
-      .shield-icon svg {
-        width: 36px;
-        height: 36px;
-        filter: drop-shadow(0 0 8px var(--accent-glow));
-      }
-
-      .shield-pulse {
-        position: absolute;
-        inset: -4px;
-        border-radius: 50%;
-        border: 2px solid var(--accent);
-        opacity: 0;
-        animation: shieldPulse 3s ease-in-out infinite;
-      }
-
-      @keyframes shieldPulse {
-        0%,
-        100% {
-          opacity: 0;
-          transform: scale(0.9);
-        }
-        50% {
-          opacity: 0.4;
-          transform: scale(1.15);
-        }
-      }
-
-      .header-text h1 {
-        font-size: 16px;
+      .header-left h1 {
+        font-size: 15px;
         font-weight: 600;
-        letter-spacing: -0.3px;
-        color: var(--text-primary);
+        color: var(--text-1);
       }
 
-      .header-text span {
-        font-size: 11px;
-        color: var(--text-secondary);
-        font-weight: 400;
+      /* Theme Toggle */
+      .theme-toggle {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--bg-input);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        transition:
+          background 0.2s,
+          border-color 0.2s;
+        padding: 0;
+      }
+
+      .theme-toggle:hover {
+        background: var(--bg-hover);
+        border-color: var(--text-3);
       }
 
       /* ── Tabs ── */
-      .tab-nav {
+      .tabs {
         display: flex;
-        padding: 6px;
-        margin: 12px 16px 0;
         background: var(--bg-card);
-        border-radius: var(--radius);
-        border: 1px solid var(--glass-border);
-        gap: 2px;
+        border-bottom: 1px solid var(--border);
+        padding: 0 4px;
       }
 
       .tab-btn {
         flex: 1;
-        padding: 9px 0;
+        padding: 10px 0;
         text-align: center;
-        background: transparent;
+        background: none;
         border: none;
         cursor: pointer;
-        color: var(--text-secondary);
+        color: var(--text-2);
         font-size: 12px;
         font-weight: 500;
-        font-family: inherit;
-        border-radius: var(--radius-sm);
-        transition: var(--transition);
+        font-family: var(--font);
         position: relative;
+        transition: color 0.2s;
       }
 
       .tab-btn:hover {
-        color: var(--text-primary);
-        background: rgba(255, 255, 255, 0.03);
+        color: var(--text-1);
       }
 
       .tab-btn.active {
         color: var(--accent);
-        background: rgba(0, 212, 255, 0.1);
-        box-shadow: 0 0 20px rgba(0, 212, 255, 0.08);
       }
 
-      .tab-btn .tab-icon {
-        display: block;
-        font-size: 14px;
-        margin-bottom: 2px;
+      .tab-btn.active::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 20%;
+        right: 20%;
+        height: 2px;
+        background: var(--accent);
+        border-radius: 2px 2px 0 0;
       }
 
       /* ── Tab Content ── */
       .tab-content {
         display: none;
-        padding: 16px;
-        animation: fadeSlideIn 0.3s ease;
+        padding: 14px 16px;
       }
 
       .tab-content.active {
         display: block;
       }
 
-      @keyframes fadeSlideIn {
-        from {
-          opacity: 0;
-          transform: translateY(6px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      /* ── Glass Card ── */
-      .glass-card {
+      /* ── Card ── */
+      .card {
         background: var(--bg-card);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        padding: 16px;
-        margin-bottom: 12px;
-        transition: var(--transition);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 10px;
+        box-shadow: var(--shadow);
+        transition:
+          background 0.25s,
+          border-color 0.25s;
       }
 
-      .glass-card:hover {
-        background: var(--bg-card-hover);
-        border-color: rgba(255, 255, 255, 0.12);
+      /* ── Input ── */
+      .input-wrap {
+        margin-bottom: 10px;
       }
 
-      /* ── URL Input ── */
-      .input-wrapper {
-        position: relative;
-        margin-bottom: 12px;
-      }
-
-      .input-wrapper input {
+      .input-wrap input {
         width: 100%;
-        padding: 12px 16px 12px 40px;
-        background: var(--bg-secondary);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        color: var(--text-primary);
+        padding: 10px 12px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-1);
         font-size: 13px;
-        font-family: inherit;
+        font-family: var(--font);
         outline: none;
-        transition: var(--transition);
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
       }
 
-      .input-wrapper input::placeholder {
-        color: var(--text-muted);
+      .input-wrap input::placeholder {
+        color: var(--text-3);
       }
 
-      .input-wrapper input:focus {
-        border-color: var(--accent);
-        box-shadow:
-          0 0 0 3px var(--accent-dim),
-          0 0 20px rgba(0, 212, 255, 0.08);
-      }
-
-      .input-icon {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-muted);
-        font-size: 14px;
-        pointer-events: none;
+      .input-wrap input:focus {
+        border-color: var(--border-focus);
+        box-shadow: 0 0 0 3px var(--accent-soft);
       }
 
       /* ── Buttons ── */
       .btn-row {
         display: flex;
         gap: 8px;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
       }
 
       .btn {
         flex: 1;
-        padding: 10px 14px;
+        padding: 9px 12px;
         border: none;
-        border-radius: var(--radius-sm);
+        border-radius: 8px;
         cursor: pointer;
         font-size: 12px;
-        font-weight: 600;
-        font-family: inherit;
-        transition: var(--transition);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        letter-spacing: 0.2px;
+        font-weight: 500;
+        font-family: var(--font);
+        transition:
+          opacity 0.15s,
+          transform 0.1s;
       }
 
-      .btn-accent {
-        background: linear-gradient(135deg, #00d4ff, #0099cc);
-        color: #000;
-        box-shadow: 0 4px 15px rgba(0, 212, 255, 0.25);
+      .btn:active {
+        transform: scale(0.98);
       }
 
-      .btn-accent:hover {
-        box-shadow: 0 6px 25px rgba(0, 212, 255, 0.4);
-        transform: translateY(-1px);
+      .btn-primary {
+        background: var(--accent);
+        color: #fff;
       }
 
-      .btn-accent:active {
-        transform: translateY(0);
+      .btn-primary:hover {
+        opacity: 0.9;
       }
 
-      .btn-ghost {
-        background: var(--bg-card);
-        color: var(--text-primary);
-        border: 1px solid var(--glass-border);
+      .btn-secondary {
+        background: var(--bg-input);
+        color: var(--text-1);
+        border: 1px solid var(--border);
       }
 
-      .btn-ghost:hover {
-        background: var(--bg-card-hover);
-        border-color: rgba(255, 255, 255, 0.15);
+      .btn-secondary:hover {
+        background: var(--bg-hover);
       }
 
       .btn-danger {
-        background: var(--danger-dim);
+        background: var(--danger-soft);
         color: var(--danger);
-        border: 1px solid rgba(255, 71, 87, 0.2);
       }
 
       .btn-danger:hover {
-        background: rgba(255, 71, 87, 0.2);
+        opacity: 0.85;
       }
 
       .btn-sm {
-        padding: 7px 12px;
+        padding: 6px 10px;
         font-size: 11px;
+        flex: none;
       }
 
-      /* ── Loading Scanner ── */
-      .scanner {
+      /* ── Loading ── */
+      .loading {
         display: none;
         text-align: center;
-        padding: 30px 16px;
+        padding: 24px 16px;
       }
 
-      .scanner.active {
+      .loading.active {
         display: block;
       }
 
-      .scan-ring {
-        width: 64px;
-        height: 64px;
-        border-radius: 50%;
-        border: 3px solid var(--bg-card);
+      .spinner {
+        width: 28px;
+        height: 28px;
+        border: 3px solid var(--border);
         border-top-color: var(--accent);
-        margin: 0 auto 16px;
-        animation: spin 1s linear infinite;
-        position: relative;
-      }
-
-      .scan-ring::after {
-        content: "";
-        position: absolute;
-        inset: 6px;
         border-radius: 50%;
-        border: 2px solid transparent;
-        border-bottom-color: rgba(0, 212, 255, 0.3);
-        animation: spin 1.5s linear infinite reverse;
+        margin: 0 auto 10px;
+        animation: spin 0.8s linear infinite;
       }
 
       @keyframes spin {
@@ -371,251 +320,205 @@
         }
       }
 
-      .scanner p {
-        color: var(--text-secondary);
+      .loading p {
+        color: var(--text-2);
         font-size: 13px;
-        font-weight: 500;
       }
 
-      .scanner .scan-dots::after {
-        content: "";
-        animation: dots 1.5s steps(3) infinite;
-      }
-
-      @keyframes dots {
-        0% {
-          content: "";
-        }
-        33% {
-          content: ".";
-        }
-        66% {
-          content: "..";
-        }
-        100% {
-          content: "...";
-        }
-      }
-
-      /* ── Result Card ── */
+      /* ── Result ── */
       .result-card {
         display: none;
-        animation: fadeSlideIn 0.4s ease;
       }
 
       .result-card.active {
         display: block;
       }
 
-      .result-header {
+      .result-status {
         display: flex;
         align-items: center;
-        gap: 16px;
-        margin-bottom: 16px;
+        gap: 12px;
+        margin-bottom: 12px;
       }
 
-      /* Confidence Gauge */
-      .gauge-wrap {
-        position: relative;
-        width: 72px;
-        height: 72px;
+      .result-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
         flex-shrink: 0;
       }
 
-      .gauge-ring {
-        width: 72px;
-        height: 72px;
-        transform: rotate(-90deg);
+      .result-icon.danger {
+        background: var(--danger-soft);
+      }
+      .result-icon.safe {
+        background: var(--success-soft);
       }
 
-      .gauge-bg {
-        fill: none;
-        stroke: var(--bg-card);
-        stroke-width: 5;
+      .result-title {
+        font-size: 15px;
+        font-weight: 600;
       }
 
-      .gauge-fill {
-        fill: none;
-        stroke-width: 5;
-        stroke-linecap: round;
-        stroke-dasharray: 188.5;
-        stroke-dashoffset: 188.5;
-        transition:
-          stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1),
-          stroke 0.5s;
-      }
-
-      .gauge-text {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .gauge-value {
-        font-size: 18px;
-        font-weight: 700;
-        line-height: 1;
-      }
-
-      .gauge-label {
-        font-size: 9px;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+      .result-domain {
+        font-size: 12px;
+        color: var(--text-2);
+        word-break: break-all;
         margin-top: 2px;
       }
 
-      .result-info h2 {
-        font-size: 16px;
-        font-weight: 600;
+      /* Confidence Bar */
+      .confidence-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         margin-bottom: 4px;
       }
 
-      .result-info .result-domain {
+      .confidence-label {
+        font-size: 11px;
+        color: var(--text-2);
+      }
+      .confidence-value {
         font-size: 12px;
-        color: var(--text-secondary);
-        word-break: break-all;
+        font-weight: 600;
       }
 
-      .result-badge {
+      .confidence-track {
+        height: 6px;
+        background: var(--bg-input);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 14px;
+      }
+
+      .confidence-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.6s ease;
+      }
+
+      /* Badges */
+      .badge {
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        padding: 4px 10px;
-        border-radius: 20px;
+        padding: 3px 8px;
+        border-radius: 6px;
         font-size: 11px;
-        font-weight: 600;
-        margin-top: 6px;
+        font-weight: 500;
       }
 
       .badge-danger {
-        background: var(--danger-dim);
+        background: var(--danger-soft);
         color: var(--danger);
       }
-
       .badge-safe {
-        background: var(--success-dim);
+        background: var(--success-soft);
         color: var(--success);
       }
-
-      .badge-warning {
-        background: var(--warning-dim);
+      .badge-info {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+      .badge-warn {
+        background: var(--warning-soft);
         color: var(--warning);
       }
 
-      .badge-category {
-        background: var(--accent-dim);
-        color: var(--accent);
+      .badges-row {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
       }
 
-      /* Risk Factors */
-      .risk-section {
+      /* Risk / Info Rows */
+      .detail-section {
         margin-top: 12px;
       }
 
-      .risk-title {
+      .detail-label {
         font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--text-muted);
-        margin-bottom: 8px;
         font-weight: 600;
+        color: var(--text-2);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
       }
 
-      .risk-list {
+      .detail-item {
         display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .risk-item {
-        display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 8px;
-        padding: 8px 12px;
-        background: rgba(255, 71, 87, 0.06);
-        border: 1px solid rgba(255, 71, 87, 0.1);
-        border-radius: var(--radius-sm);
+        padding: 7px 0;
         font-size: 12px;
-        color: var(--text-secondary);
+        color: var(--text-2);
+        border-bottom: 1px solid var(--border);
       }
 
-      .risk-dot {
-        width: 6px;
-        height: 6px;
+      .detail-item:last-child {
+        border-bottom: none;
+      }
+
+      .detail-dot {
+        width: 5px;
+        height: 5px;
         border-radius: 50%;
-        background: var(--danger);
+        margin-top: 5px;
         flex-shrink: 0;
       }
 
-      .safe-item {
-        background: rgba(46, 213, 115, 0.06);
-        border-color: rgba(46, 213, 115, 0.1);
+      .dot-danger {
+        background: var(--danger);
       }
-
-      .safe-item .risk-dot {
+      .dot-safe {
         background: var(--success);
       }
 
-      /* Domain Age */
-      .domain-age-card {
-        margin-top: 10px;
-        padding: 10px 14px;
-        background: var(--bg-card);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius-sm);
-        font-size: 12px;
-        color: var(--text-secondary);
+      .domain-age-row {
         display: flex;
         justify-content: space-between;
-      }
-
-      .domain-age-card strong {
-        color: var(--text-primary);
-      }
-
-      /* ── Explanation ── */
-      .explanation-box {
-        margin-top: 10px;
-        padding: 12px;
-        background: var(--bg-secondary);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius-sm);
+        padding: 8px 0;
         font-size: 12px;
-        line-height: 1.6;
-        color: var(--text-secondary);
-        max-height: 160px;
-        overflow-y: auto;
-        white-space: pre-line;
+        color: var(--text-2);
       }
 
-      /* ── Status Pill ── */
-      .status-pill {
+      .domain-age-row strong {
+        color: var(--text-1);
+      }
+
+      /* ── Status Badge ── */
+      .status-bar {
+        text-align: center;
+        margin-top: 10px;
+      }
+
+      .status-badge {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 6px 14px;
-        background: var(--success-dim);
-        border: 1px solid rgba(46, 213, 115, 0.15);
+        padding: 5px 12px;
         border-radius: 20px;
         font-size: 11px;
         font-weight: 500;
         color: var(--success);
-        margin-top: 14px;
+        background: var(--success-soft);
       }
 
       .status-dot {
-        width: 6px;
-        height: 6px;
+        width: 5px;
+        height: 5px;
         border-radius: 50%;
         background: var(--success);
-        animation: blink 2s ease-in-out infinite;
+        animation: pulse 2s ease-in-out infinite;
       }
 
-      @keyframes blink {
+      @keyframes pulse {
         0%,
         100% {
           opacity: 1;
@@ -626,90 +529,81 @@
       }
 
       /* ── History ── */
-      .history-header {
+      .section-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
       }
 
-      .history-header h2 {
-        font-size: 15px;
+      .section-header h2 {
+        font-size: 14px;
         font-weight: 600;
       }
 
-      .detection-card {
+      .detection-item {
         background: var(--bg-card);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        padding: 14px;
-        margin-bottom: 10px;
-        transition: var(--transition);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 8px;
+        box-shadow: var(--shadow);
+        transition: transform 0.15s;
       }
 
-      .detection-card:hover {
-        background: var(--bg-card-hover);
-        border-color: rgba(255, 255, 255, 0.12);
+      .detection-item:hover {
         transform: translateY(-1px);
       }
 
-      .detection-url {
-        font-size: 13px;
+      .det-url {
+        font-size: 12px;
         font-weight: 500;
         word-break: break-all;
-        margin-bottom: 8px;
-        color: var(--text-primary);
+        margin-bottom: 6px;
+        color: var(--text-1);
       }
 
-      .detection-meta {
+      .det-meta {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         flex-wrap: wrap;
       }
 
-      .detection-time {
+      .det-time {
         font-size: 11px;
-        color: var(--text-muted);
+        color: var(--text-3);
       }
 
       .empty-state {
         text-align: center;
-        padding: 40px 20px;
-        color: var(--text-muted);
-      }
-
-      .empty-state .empty-icon {
-        font-size: 36px;
-        margin-bottom: 12px;
-        opacity: 0.5;
+        padding: 30px 16px;
+        color: var(--text-3);
       }
 
       .empty-state p {
         font-size: 13px;
+        margin-top: 8px;
       }
 
       /* ── Settings ── */
       .settings-group {
-        margin-bottom: 20px;
+        margin-bottom: 16px;
       }
 
       .settings-group h3 {
         font-size: 13px;
         font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        margin-bottom: 8px;
+        color: var(--text-1);
       }
 
       .setting-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 10px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        padding: 9px 0;
+        border-bottom: 1px solid var(--border);
       }
 
       .setting-row:last-child {
@@ -718,15 +612,13 @@
 
       .setting-label {
         font-size: 13px;
-        color: var(--text-secondary);
+        color: var(--text-2);
       }
 
-      /* Toggle Switch */
       .toggle {
         position: relative;
-        width: 40px;
+        width: 38px;
         height: 22px;
-        flex-shrink: 0;
       }
 
       .toggle input {
@@ -735,77 +627,69 @@
         height: 0;
       }
 
-      .toggle-slider {
+      .toggle-track {
         position: absolute;
-        cursor: pointer;
         inset: 0;
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--bg-input);
         border-radius: 22px;
-        transition: var(--transition);
+        cursor: pointer;
+        transition: background 0.2s;
       }
 
-      .toggle-slider::before {
+      .toggle-track::before {
         content: "";
         position: absolute;
-        height: 16px;
         width: 16px;
+        height: 16px;
         left: 3px;
         bottom: 3px;
-        background: var(--text-secondary);
+        background: #fff;
         border-radius: 50%;
-        transition: var(--transition);
+        transition: transform 0.2s;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
       }
 
-      input:checked + .toggle-slider {
+      input:checked + .toggle-track {
         background: var(--accent);
-        box-shadow: 0 0 12px var(--accent-dim);
       }
 
-      input:checked + .toggle-slider::before {
-        background: #000;
-        transform: translateX(18px);
+      input:checked + .toggle-track::before {
+        transform: translateX(16px);
       }
 
-      /* Sensitivity Slider */
-      .sensitivity-wrap {
-        margin-top: 8px;
+      .slider-group {
+        margin-top: 4px;
       }
 
-      .sensitivity-labels {
+      .slider-labels {
         display: flex;
         justify-content: space-between;
         font-size: 11px;
-        color: var(--text-muted);
-        margin-bottom: 6px;
+        color: var(--text-3);
+        margin-bottom: 4px;
       }
 
-      .sensitivity-slider {
+      .range-slider {
         width: 100%;
         -webkit-appearance: none;
         appearance: none;
         height: 4px;
-        background: rgba(255, 255, 255, 0.08);
+        background: var(--bg-input);
         border-radius: 4px;
         outline: none;
       }
 
-      .sensitivity-slider::-webkit-slider-thumb {
+      .range-slider::-webkit-slider-thumb {
         -webkit-appearance: none;
         width: 16px;
         height: 16px;
         border-radius: 50%;
         background: var(--accent);
         cursor: pointer;
-        box-shadow: 0 0 10px var(--accent-glow);
-        transition: var(--transition);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
       }
 
-      .sensitivity-slider::-webkit-slider-thumb:hover {
-        transform: scale(1.2);
-        box-shadow: 0 0 16px var(--accent-glow);
-      }
-
-      .sensitivity-value {
+      .slider-value {
         text-align: center;
         font-size: 12px;
         color: var(--accent);
@@ -813,205 +697,133 @@
         margin-top: 4px;
       }
 
-      /* Category Pills */
-      .category-grid {
+      .cat-tags {
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
-        margin-top: 8px;
+        margin-top: 6px;
       }
 
-      .cat-pill {
-        padding: 5px 10px;
-        border-radius: 20px;
+      .cat-tag {
+        padding: 4px 10px;
+        border-radius: 6px;
         font-size: 11px;
+        background: var(--accent-soft);
+        color: var(--accent);
         font-weight: 500;
-        background: var(--bg-card);
-        border: 1px solid var(--glass-border);
-        color: var(--text-secondary);
-        display: flex;
-        align-items: center;
-        gap: 4px;
       }
 
       /* ── Statistics ── */
-      .stat-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+      .total-stat {
+        text-align: center;
+        padding: 18px;
         margin-bottom: 14px;
       }
 
-      .stat-header h3 {
-        font-size: 15px;
-        font-weight: 600;
-      }
-
-      .total-box {
-        text-align: center;
-        padding: 20px;
-        background: linear-gradient(
-          135deg,
-          rgba(0, 212, 255, 0.08),
-          rgba(0, 100, 255, 0.04)
-        );
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        margin-bottom: 16px;
-      }
-
       .total-number {
-        font-size: 36px;
+        font-size: 32px;
         font-weight: 700;
         color: var(--accent);
-        line-height: 1;
       }
 
       .total-label {
         font-size: 12px;
-        color: var(--text-secondary);
-        margin-top: 6px;
+        color: var(--text-2);
+        margin-top: 4px;
       }
 
       .bar-chart {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
       }
 
       .bar-row {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
+        margin-bottom: 8px;
       }
 
-      .bar-label {
-        width: 80px;
+      .bar-name {
+        width: 76px;
         font-size: 11px;
-        color: var(--text-secondary);
+        color: var(--text-2);
         text-align: right;
         flex-shrink: 0;
       }
 
       .bar-track {
         flex: 1;
-        height: 8px;
-        background: rgba(255, 255, 255, 0.04);
-        border-radius: 4px;
+        height: 6px;
+        background: var(--bg-input);
+        border-radius: 3px;
         overflow: hidden;
       }
 
       .bar-fill {
         height: 100%;
-        border-radius: 4px;
-        background: linear-gradient(90deg, var(--accent), #0099cc);
-        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        min-width: 0;
+        border-radius: 3px;
+        background: var(--accent);
+        transition: width 0.6s ease;
       }
 
-      .bar-count {
-        width: 30px;
+      .bar-fill.danger {
+        background: var(--danger);
+      }
+
+      .bar-val {
+        width: 24px;
         font-size: 11px;
         font-weight: 600;
-        color: var(--text-primary);
+        color: var(--text-1);
       }
 
-      .most-targeted {
-        padding: 12px 16px;
-        background: var(--danger-dim);
-        border: 1px solid rgba(255, 71, 87, 0.15);
-        border-radius: var(--radius-sm);
+      .most-targeted-box {
+        padding: 10px 14px;
+        background: var(--danger-soft);
+        border-radius: 8px;
         font-size: 12px;
-        color: var(--text-secondary);
-        margin-top: 12px;
+        color: var(--text-2);
+        margin-top: 10px;
       }
 
-      .most-targeted strong {
+      .most-targeted-box strong {
         color: var(--danger);
       }
 
       /* ── Footer ── */
       .footer {
-        padding: 12px 16px;
+        padding: 10px 16px;
         text-align: center;
         font-size: 11px;
-        color: var(--text-muted);
-        border-top: 1px solid var(--glass-border);
-      }
-
-      .footer a {
-        color: var(--accent);
-        text-decoration: none;
-      }
-
-      /* ── Utilities ── */
-      .section-title {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--text-muted);
-        font-weight: 600;
-        margin-bottom: 10px;
-      }
-
-      .divider {
-        height: 1px;
-        background: var(--glass-border);
-        margin: 16px 0;
+        color: var(--text-3);
+        border-top: 1px solid var(--border);
+        background: var(--bg-card);
       }
     </style>
   </head>
   <body>
     <!-- Header -->
     <div class="header">
-      <div class="shield-icon">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M12 2L3 7V12C3 17.55 6.84 22.74 12 24C17.16 22.74 21 17.55 21 12V7L12 2Z"
-            fill="url(#shieldGrad)"
-            stroke="rgba(0,212,255,0.5)"
-            stroke-width="0.5"
-          />
-          <path
-            d="M10 15.5L7.5 13L6.09 14.41L10 18.33L18 10.33L16.59 8.92L10 15.5Z"
-            fill="#0a0a14"
-          />
-          <defs>
-            <linearGradient id="shieldGrad" x1="3" y1="2" x2="21" y2="24">
-              <stop offset="0%" stop-color="#00d4ff" />
-              <stop offset="100%" stop-color="#0077aa" />
-            </linearGradient>
-          </defs>
-        </svg>
-        <div class="shield-pulse"></div>
-      </div>
-      <div class="header-text">
+      <div class="header-left">
+        <img src="icons/icon48.png" alt="Logo" />
         <h1>Phishing Detector</h1>
-        <span>Real-time URL threat analysis</span>
       </div>
+      <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+        🌙
+      </button>
     </div>
 
     <!-- Tabs -->
-    <div class="tab-nav">
-      <button class="tab-btn active" data-tab="analyzer">
-        <span class="tab-icon">🔍</span>Scan
-      </button>
-      <button class="tab-btn" data-tab="history">
-        <span class="tab-icon">📋</span>History
-      </button>
-      <button class="tab-btn" data-tab="settings">
-        <span class="tab-icon">⚙️</span>Settings
-      </button>
-      <button class="tab-btn" data-tab="statistics">
-        <span class="tab-icon">📊</span>Stats
-      </button>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="analyzer">Scan</button>
+      <button class="tab-btn" data-tab="history">History</button>
+      <button class="tab-btn" data-tab="settings">Settings</button>
+      <button class="tab-btn" data-tab="statistics">Stats</button>
     </div>
 
-    <!-- ─── ANALYZER TAB ─── -->
+    <!-- ANALYZER -->
     <div id="analyzer" class="tab-content active">
-      <div class="input-wrapper">
-        <span class="input-icon">🔗</span>
+      <div class="input-wrap">
         <input
           type="text"
           id="url-input"
@@ -1022,121 +834,93 @@
       </div>
 
       <div class="btn-row">
-        <button id="analyze-btn" class="btn btn-accent">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-          >
-            <circle cx="11" cy="11" r="7" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          Analyze URL
-        </button>
-        <button id="analyze-current-btn" class="btn btn-ghost">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-          >
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          </svg>
+        <button id="analyze-btn" class="btn btn-primary">Analyze URL</button>
+        <button id="analyze-current-btn" class="btn btn-secondary">
           Current Page
         </button>
       </div>
 
-      <!-- Scanner Loading -->
-      <div id="loading" class="scanner">
-        <div class="scan-ring"></div>
-        <p>Scanning URL<span class="scan-dots"></span></p>
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Analyzing URL...</p>
       </div>
 
-      <!-- Result -->
       <div id="result" class="result-card">
         <!-- Populated by JS -->
       </div>
 
-      <!-- Status -->
-      <div style="text-align: center">
-        <div class="status-pill">
+      <div class="status-bar">
+        <span class="status-badge">
           <span class="status-dot"></span>
           Protection Active
-        </div>
+        </span>
       </div>
     </div>
 
-    <!-- ─── HISTORY TAB ─── -->
+    <!-- HISTORY -->
     <div id="history" class="tab-content">
-      <div class="history-header">
+      <div class="section-header">
         <h2>Detection History</h2>
-        <button id="clear-history" class="btn btn-danger btn-sm">
-          Clear All
-        </button>
+        <button id="clear-history" class="btn btn-danger btn-sm">Clear</button>
       </div>
-      <div id="detections-list">
-        <!-- Populated by JS -->
-      </div>
+      <div id="detections-list"></div>
     </div>
 
-    <!-- ─── SETTINGS TAB ─── -->
+    <!-- SETTINGS -->
     <div id="settings" class="tab-content">
       <div class="settings-group">
-        <h3>🛡️ Protection</h3>
-        <div class="glass-card">
+        <h3>Protection</h3>
+        <div class="card">
           <div class="setting-row">
             <span class="setting-label">Real-time protection</span>
-            <label class="toggle">
-              <input type="checkbox" id="real-time-protection" checked />
-              <span class="toggle-slider"></span>
-            </label>
+            <label class="toggle"
+              ><input type="checkbox" id="real-time-protection" checked /><span
+                class="toggle-track"
+              ></span
+            ></label>
           </div>
           <div class="setting-row">
             <span class="setting-label">Warning overlays</span>
-            <label class="toggle">
-              <input type="checkbox" id="show-warnings" checked />
-              <span class="toggle-slider"></span>
-            </label>
+            <label class="toggle"
+              ><input type="checkbox" id="show-warnings" checked /><span
+                class="toggle-track"
+              ></span
+            ></label>
           </div>
           <div class="setting-row">
             <span class="setting-label">Domain age check</span>
-            <label class="toggle">
-              <input type="checkbox" id="check-domain-age" checked />
-              <span class="toggle-slider"></span>
-            </label>
+            <label class="toggle"
+              ><input type="checkbox" id="check-domain-age" checked /><span
+                class="toggle-track"
+              ></span
+            ></label>
           </div>
           <div class="setting-row">
             <span class="setting-label">Advanced analysis</span>
-            <label class="toggle">
-              <input type="checkbox" id="advanced-analysis" checked />
-              <span class="toggle-slider"></span>
-            </label>
+            <label class="toggle"
+              ><input type="checkbox" id="advanced-analysis" checked /><span
+                class="toggle-track"
+              ></span
+            ></label>
           </div>
           <div class="setting-row">
             <span class="setting-label">Suspicious TLD monitoring</span>
-            <label class="toggle">
-              <input type="checkbox" id="monitor-suspicious-tlds" checked />
-              <span class="toggle-slider"></span>
-            </label>
+            <label class="toggle"
+              ><input
+                type="checkbox"
+                id="monitor-suspicious-tlds"
+                checked /><span class="toggle-track"></span
+            ></label>
           </div>
         </div>
       </div>
 
       <div class="settings-group">
-        <h3>🎯 Sensitivity</h3>
-        <div class="glass-card">
-          <div class="sensitivity-wrap">
-            <div class="sensitivity-labels">
-              <span>Low</span>
-              <span>Medium</span>
-              <span>High</span>
+        <h3>Sensitivity</h3>
+        <div class="card">
+          <div class="slider-group">
+            <div class="slider-labels">
+              <span>Low</span><span>Medium</span><span>High</span>
             </div>
             <input
               type="range"
@@ -1144,76 +928,66 @@
               min="1"
               max="5"
               value="3"
-              class="sensitivity-slider"
+              class="range-slider"
             />
-            <div class="sensitivity-value">
+            <div class="slider-value">
               Level <span id="sensitivity-display">3</span>
             </div>
           </div>
-          <p style="font-size: 11px; color: var(--text-muted); margin-top: 8px">
-            Higher sensitivity catches more threats but may increase false
-            positives.
+          <p style="font-size: 11px; color: var(--text-3); margin-top: 6px">
+            Higher sensitivity may increase false positives.
           </p>
         </div>
       </div>
 
       <div class="settings-group">
-        <h3>🏷️ Domain Categories</h3>
-        <div class="category-grid">
-          <span class="cat-pill">🏦 Financial</span>
-          <span class="cat-pill">🛒 E-commerce</span>
-          <span class="cat-pill">👥 Social</span>
-          <span class="cat-pill">🎮 Gaming</span>
-          <span class="cat-pill">🎓 Education</span>
-          <span class="cat-pill">🎬 Streaming</span>
-          <span class="cat-pill">💻 Technology</span>
-          <span class="cat-pill">🏛️ Government</span>
-          <span class="cat-pill">🏥 Healthcare</span>
-          <span class="cat-pill">📰 News</span>
+        <h3>Monitored Categories</h3>
+        <div class="cat-tags">
+          <span class="cat-tag">🏦 Financial</span>
+          <span class="cat-tag">🛒 E-commerce</span>
+          <span class="cat-tag">👥 Social</span>
+          <span class="cat-tag">🎮 Gaming</span>
+          <span class="cat-tag">🎓 Education</span>
+          <span class="cat-tag">🎬 Streaming</span>
+          <span class="cat-tag">💻 Technology</span>
+          <span class="cat-tag">🏛️ Government</span>
+          <span class="cat-tag">🏥 Healthcare</span>
+          <span class="cat-tag">📰 News</span>
         </div>
       </div>
     </div>
 
-    <!-- ─── STATISTICS TAB ─── -->
+    <!-- STATISTICS -->
     <div id="statistics" class="tab-content">
-      <div class="stat-header">
-        <h3>Threat Intelligence</h3>
-        <button id="refresh-stats" class="btn btn-ghost btn-sm">
-          ↻ Refresh
+      <div class="section-header">
+        <h2>Threat Statistics</h2>
+        <button id="refresh-stats" class="btn btn-secondary btn-sm">
+          Refresh
         </button>
       </div>
 
-      <div class="total-box">
+      <div class="card total-stat">
         <div class="total-number" id="total-count">0</div>
-        <div class="total-label">Total Phishing Attempts Detected</div>
+        <div class="total-label">Phishing Attempts Detected</div>
       </div>
 
-      <div class="section-title">Category Breakdown</div>
-      <div id="category-statistics" class="bar-chart">
-        <!-- Populated by JS -->
-      </div>
+      <div class="detail-label">By Category</div>
+      <div id="category-statistics" class="bar-chart"></div>
 
-      <div class="divider"></div>
-
-      <div class="section-title">Top Phishing Domains</div>
-      <div id="domain-statistics" class="bar-chart">
-        <!-- Populated by JS -->
-      </div>
+      <div class="detail-label">Top Domains</div>
+      <div id="domain-statistics" class="bar-chart"></div>
 
       <div
         id="most-targeted-section"
-        class="most-targeted"
+        class="most-targeted-box"
         style="display: none"
       >
-        Most targeted: <strong id="most-targeted-category">None yet</strong>
+        Most targeted: <strong id="most-targeted-category">None</strong>
       </div>
     </div>
 
     <!-- Footer -->
-    <div class="footer">
-      Phishing URL Detector v1.0 &nbsp;·&nbsp; Built with 🛡️ by
-      <a href="https://github.com/anish7179" target="_blank">anish7179</a>
-    </div>
+    <div class="footer">Phishing URL Detector v1.0</div>
 
     <script src="popup.js"></script>
   </body>
