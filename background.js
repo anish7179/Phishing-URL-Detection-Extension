@@ -53,6 +53,25 @@ const suspiciousPatterns = [
   /[a-z]+-[a-z]+\.[a-z]+/,
 ];
 
+const suspiciousTLDs = [
+  ".tk",
+  ".ml",
+  ".ga",
+  ".cf",
+  ".gq",
+  ".xyz",
+  ".top",
+  ".zip",
+  ".click",
+  ".link",
+  ".hol.es",
+  ".pe.hu",
+  ".000webhostapp.com",
+  ".servehttp.com",
+  ".rf.gd",
+  ".epizy.com",
+];
+
 // Top brands for typosquatting checks
 const topBrands = [
   "apple",
