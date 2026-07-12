@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", function () {
       risks.push("New domain (" + r.domainAge.ageInDays + " days)");
     if (r.phishingCount > 1) risks.push(r.phishingCount + " prior attempts");
 
-    let h = `<div class="card">
+    let h = `<div class="card" ${bad ? 'style="border: 2px solid var(--danger); box-shadow: 0 4px 16px rgba(239, 68, 68, 0.6);"' : ''}>
       <div class="res-top">
         <div class="res-icon ${bad ? "bad" : "ok"}">${bad ? "⚠️" : "✓"}</div>
         <div><div class="res-title">${bad ? "Threat Detected" : "URL is Safe"}</div><div class="res-domain">${dom}</div></div>
@@ -301,7 +301,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const mx = Math.max(...Object.values(cc), 1);
       const catEl = document.getElementById("category-statistics");
       catEl.innerHTML = Object.entries(cc)
-        .filter(([k]) => k !== "unknown")
+        
         .sort((a, b) => b[1] - a[1])
         .map(
           ([k, v]) =>
