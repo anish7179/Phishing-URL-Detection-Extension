@@ -595,6 +595,14 @@ function analyzeUrlFeatures(urlInfo, domainAge, url, domSignals) { urlInfo.domSi
 // ── Check Whitelist ──
 function isDomainWhitelisted(domain) {
   if (builtInWhitelist.has(domain)) return true;
+  
+  // Natively intercept safe subdomains
+  const parts = domain.split(".");
+  if (parts.length > 2) {
+    const root = parts.slice(-2).join(".");
+    if (builtInWhitelist.has(root)) return true;
+  }
+  
   if (!settings.customWhitelist) return false;
   const customList = settings.customWhitelist
     .split("\n")
