@@ -68,6 +68,8 @@ const builtInWhitelist = new Set([
   "yahoo.com",
   "reddit.com",
   "github.com",
+  "githubusercontent.com",
+  "github.io",
   "netflix.com",
   "bing.com",
   "paypal.com",

@@ -103,6 +103,8 @@ const builtInWhitelist = new Set([
   "yahoo.com",
   "reddit.com",
   "github.com",
+  "githubusercontent.com",
+  "github.io",
   "netflix.com",
   "bing.com",
   "paypal.com",
@@ -568,110 +570,55 @@ function analyzeUrlFeatures(urlInfo) {
     externalForm: false,
     hiddenIframe: false,
   };
-  // ──────────────────────────────────────────────
-  // ML: Logistic Regression Subsystem
-  // ──────────────────────────────────────────────
-  // 1. Feature Extraction (Normalization)
-  if (!urlInfo.domSignals)
-    urlInfo.domSignals = {
-      passwordField: false,
-      externalForm: false,
-      hiddenIframe: false,
-    };
-  const f_domPassword = urlInfo.domSignals.passwordField ? 1.0 : 0.0;
-  const f_domExternal = urlInfo.domSignals.externalForm ? 1.0 : 0.0;
-  const f_domHidden = urlInfo.domSignals.hiddenIframe ? 1.0 : 0.0;
-  const spoofedBrand = checkTyposquatting(urlInfo.domain);
-  if (spoofedBrand) {
-    urlInfo.spoofedBrand = spoofedBrand;
-    if (urlInfo.category === "unknown") {
-      urlInfo.category = determineDomainCategory(
-        "http://" + spoofedBrand + ".com",
-      );
-    }
+
+  // 1. Calculate Exact 15 Lexical Features Used in 549k Training
+  const url = urlInfo.url.toLowerCase();
+  const domain = urlInfo.domain.toLowerCase();
+  let path = urlInfo.path.toLowerCase();
+  
+  const f_url_len = Math.min(url.length / 150.0, 1.0);
+  const f_domain_len = Math.min(domain.length / 75.0, 1.0);
+  const f_path_len = Math.min(path.length / 100.0, 1.0);
+  
+  const f_dots = Math.min((url.match(/\./g) || []).length / 6.0, 1.0);
+  const f_hyphens = Math.min((url.match(/-/g) || []).length / 4.0, 1.0);
+  const f_at_symbols = Math.min((url.match(/@/g) || []).length, 1.0);
+  const f_slashes = Math.min((url.match(/\//g) || []).length / 6.0, 1.0);
+  
+  // count digits in the whole url, not just domain
+  let digitCount = 0;
+  for (let i = 0; i < url.length; i++) { if (url[i] >= '0' && url[i] <= '9') digitCount++; }
+  const f_digits_ratio = digitCount / Math.max(url.length, 1);
+  
+  const f_is_ip = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/.test(domain) ? 1.0 : 0.0;
+  
+  const rawEntropy = shannonEntropy(domain);
+  const f_entropy = Math.min(rawEntropy / 4.5, 1.0);
+  
+  let keywordQty = 0;
+  for (const w of suspiciousKeywords) {
+      if (url.includes(w)) keywordQty++;
   }
+  const f_has_keywords = Math.min(keywordQty / 3.0, 1.0);
+  
+  const f_suspicious_tld = suspiciousTLDs.some(t => domain.endsWith(t)) ? 1.0 : 0.0;
+  const f_multi_subdomains = (domain.match(/\./g) || []).length >= 3 ? 1.0 : 0.0;
+  const f_https_in_domain = domain.includes("https") ? 1.0 : 0.0;
+  const f_url_encoded = (url.includes("%20") || url.includes("%")) ? 1.0 : 0.0;
 
-  const f_domRisk =
-    f_domPassword && (urlInfo.category === "unknown" || spoofedBrand)
-      ? 1.0
-      : 0.0;
-  const f_suspiciousWords = urlInfo.hasSuspiciousWords ? 1.0 : 0.0;
-  const f_domainLen = Math.min(urlInfo.domainLength / 100.0, 1.0);
-  const f_hyphens = Math.min(urlInfo.numHyphens / 5.0, 1.0);
-  const f_ipAddress = urlInfo.hasIpAddress ? 1.0 : 0.0;
-  const f_atSymbols = urlInfo.numAtSymbols > 0 ? 1.0 : 0.0;
-  const f_encoding = urlInfo.hasExcessiveEncoding ? 1.0 : 0.0;
-  const f_suspiciousTLD = suspiciousTLDs.some((tld) =>
-    urlInfo.domain.endsWith(tld),
-  )
-    ? 1.0
-    : 0.0;
-
-  const rawEntropy = shannonEntropy(urlInfo.domain);
-  const f_entropy = Math.min(rawEntropy / 5.0, 1.0);
-
-  const f_spoofedBrand = spoofedBrand ? 1.0 : 0.0;
-
-  const f_pathPlugin =
-    urlInfo.pathLength > 12 &&
-    (urlInfo.path.includes("/plugins/") || urlInfo.path.includes("/wp-"))
-      ? 1.0
-      : 0.0;
-  const f_deepPath = urlInfo.path.split("/").length > 3 ? 1.0 : 0.0;
-  const f_pathLogin =
-    urlInfo.path.toLowerCase().includes("login") ||
-    urlInfo.path.toLowerCase().includes("chase")
-      ? 1.0
-      : 0.0;
-  const f_urlLen = Math.min(urlInfo.url.length / 200.0, 1.0);
-  const f_dots = Math.min((urlInfo.url.match(/\./g) || []).length / 8.0, 1.0);
-  const f_subdomains = Math.min(
-    Math.max(urlInfo.domain.split(".").length - 2, 0) / 4.0,
-    1.0,
-  );
-  const f_digitsRatio =
-    urlInfo.domain.replace(/[^0-9]/g, "").length /
-    Math.max(urlInfo.domain.length, 1);
-
-  // 2. Machine Learning Weights Matrix (Trained on 235,795 PhiUSIIL samples — 99.94% accuracy)
-  const W_bias = 0.15298459;
-
-  // StandardScaler normalization (z = (x - mean) / scale)
+  // 2. Machine Learning Weights Matrix (Trained on 549,346 Samples)
+  const W_bias = -0.10419202;
+  
   const featureValues = [
-    f_suspiciousWords,
-    f_domainLen,
-    f_hyphens,
-    f_ipAddress,
-    f_atSymbols,
-    f_encoding,
-    f_entropy,
-    f_spoofedBrand,
-    f_suspiciousTLD,
-    f_pathPlugin,
-    f_pathLogin,
-    f_deepPath,
-    f_urlLen,
-    f_dots,
-    f_subdomains,
-    f_digitsRatio,
+    f_url_len, f_domain_len, f_path_len, f_dots, f_hyphens,
+    f_at_symbols, f_slashes, f_digits_ratio, f_is_ip, f_entropy,
+    f_has_keywords, f_suspicious_tld, f_multi_subdomains, f_https_in_domain, f_url_encoded
   ];
-
-  const W_means = [
-    0.05778324, 0.21475386, 0.05578469, 0.0026188, 0.00644628, 0.00379037,
-    0.6943768, 0.01098412, 0.03978032, 0.00594266, 0.01447232, 0.01805064,
-    0.17230499, 0.28103265, 0.29097972, 0.03123352,
-  ];
-  const W_scales = [
-    0.23333311, 0.09166376, 0.14315118, 0.05110716, 0.08002951, 0.06144918,
-    0.08022631, 0.10422796, 0.19544269, 0.07685927, 0.11942725, 0.13313456,
-    0.11099315, 0.09182125, 0.14767317, 0.0923184,
-  ];
-  const W_weights = [
-    -0.15387013, 0.1246023, 1.07922863, -0.00884691, -0.0045809, -0.05164534,
-    -0.053172, -0.24369257, -0.25802831, 0.00287998, -0.10478654, -0.00539764,
-    0.91711795, 0.19170116, 0.67832673, -1.10150386,
-  ];
-
+  
+  const W_means = [0.32213482, 0.21941030, 0.29606695, 0.33223126, 0.20392695, 0.00370441, 0.39934794, 0.07343961, 0.01431250, 0.74039339, 0.07273738, 0.01146593, 0.05525899, 0.00022982, 0.02639962];
+  const W_scales = [0.19457144, 0.10498350, 0.25169083, 0.18533357, 0.33450522, 0.06075104, 0.23493374, 0.10980713, 0.11877564, 0.08132576, 0.20429573, 0.10646342, 0.22848509, 0.01515805, 0.16032056];
+  const W_weights = [2.32414252, -0.38256407, -2.37114865, 0.30207724, -0.65592234, 0.15922328, 0.26519011, 0.39590209, 0.70160897, 0.19675334, 0.89217178, 0.41578190, -0.17797486, 0.05012824, -0.08133069];
+  
   // Normalize and compute dot product
   let z = W_bias;
   for (let i = 0; i < featureValues.length; i++) {
@@ -679,15 +626,23 @@ function analyzeUrlFeatures(urlInfo) {
     z += normalized * W_weights[i];
   }
 
-  // Add DOM structural features (not normalized, manual weights from structural analysis)
-  z += f_domPassword * 3.5; // Unexpected password forms
-  z += f_domExternal * 3.0; // Data exfiltration to unknown domains
-  z += f_domHidden * 2.5; // Obfuscated iframes
-  z += f_domRisk * 5.5; // Critical: Unknown domain asking for passwords
+  // 3. Add DOM structural features 
+  // (We retain these manually calibrated penalties to catch zero-day hidden iframes!)
+  const f_domPassword = urlInfo.domSignals.passwordField ? 1.0 : 0.0;
+  const f_domExternal = urlInfo.domSignals.externalForm ? 1.0 : 0.0;
+  const f_domHidden = urlInfo.domSignals.hiddenIframe ? 1.0 : 0.0;
+  const spoofedBrand = checkTyposquatting(urlInfo.domain);
+  if (spoofedBrand) {
+    urlInfo.spoofedBrand = spoofedBrand;
+  }
+  const f_domRisk = f_domPassword && (urlInfo.category === "unknown" || spoofedBrand) ? 1.0 : 0.0;
 
-  // 3. Dot Product (computed inline above during normalization)
+  z += f_domPassword * 3.5;   // Unexpected password forms
+  z += f_domExternal * 3.0;   // Data exfiltration to unknown domains
+  z += f_domHidden * 2.5;     // Obfuscated iframes
+  z += f_domRisk * 5.5;       // Critical: Unknown domain asking for passwords
 
-  // 4. Sigmoid Activation (Output -> 0.0 to 1.0)
+  // 4. Sigmoid Activation
   const probability = 1.0 / (1.0 + Math.exp(-z));
 
   // 5. Sensitivity Shift
@@ -696,12 +651,19 @@ function analyzeUrlFeatures(urlInfo) {
 
   const isPhishing = probability > threshold;
 
+  // Flag risk meta-data for the UI explainer
+  urlInfo.hasSuspiciousWords = (keywordQty > 0);
+  urlInfo.hasIpAddress = (f_is_ip > 0);
+  urlInfo.hasExcessiveEncoding = (f_url_encoded > 0);
+  urlInfo.numAtSymbols = (f_at_symbols > 0) ? 1 : 0;
+
   return {
     classification: isPhishing ? "Phishing" : "Legitimate",
     confidence: Math.max(0.01, probability),
     score: probability,
   };
 }
+
 
 // ── Check Whitelist ──
 function isDomainWhitelisted(domain) {
