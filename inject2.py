@@ -84,10 +84,12 @@ js_func = f"""function analyzeUrlFeatures(urlInfo) {{
   }}
   const f_domRisk = f_domPassword && (urlInfo.category === "unknown" || spoofedBrand) ? 1.0 : 0.0;
 
-  z += f_domPassword * 3.5;   // Unexpected password forms
-  z += f_domExternal * 3.0;   // Data exfiltration to unknown domains
-  z += f_domHidden * 2.5;     // Obfuscated iframes
-  z += f_domRisk * 5.5;       // Critical: Unknown domain asking for passwords
+  // Only penalize if it's explicitly malicious behavior:
+  // 1. Obfuscated Hidden Iframes (Often used for clickjacking or invisible payloads)
+  z += f_domHidden * 2.5;     
+
+  // 2. High-Risk Password Traps (Unknown domain or typosquatted domain begging for passwords)
+  z += f_domRisk * 5.5;
 
   // 4. Sigmoid Activation
   const probability = 1.0 / (1.0 + Math.exp(-z));
